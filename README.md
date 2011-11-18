@@ -55,4 +55,4 @@ Usage
 
 As long as you have included the NSFileManager+StandardPaths.h file, you can call any of the methods above on any instance of NSFileManager. For example, if you wanted to get the path to a file called "Foo.bar" in the cache folder, you would write:
 
-NSString *path = [[[NSFileManager defaultManager] cacheDataPath] stringByAppendingPathComponent:@"Foo.bar"];
+	NSString *path = [[[NSFileManager defaultManager] cacheDataPath] stringByAppendingPathComponent:@"Foo.bar"];
