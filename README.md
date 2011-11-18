@@ -39,7 +39,7 @@ Returns the path to the Application's Library/Caches folder. On Mac OS, the path
 
 	- (NSString *)offlineDataPath;
 	
-Returns the path for `Library/Application Support/Offline Data` on iOS, or `Library/Application Support/<AppName>/Offline Data` on Mac OS and creates it if it does not exist. This is not a standard defined path, but it is a safe place to put cache files that you do not wish to be automatically deleted when the device runs low on disk space. On iOS 5.0.1 the `com.apple.MobileBackup` attribute is set on this folder to prevent it from being automatically backed up to iCloud. On iOS 5.0 this attribute is not available, and Apple take a dim view of using up users` iCloud space with cache files, so on iOS 5.0 and earlier this path is mapped back to `Library/Caches/Offline Data` instead.
+Returns the path for `Library/Application Support/Offline Data` on iOS, or `Library/Application Support/<AppName>/Offline Data` on Mac OS and creates it if it does not exist. This is not a standard defined path, but it is a safe place to put cache files that you do not wish to be automatically deleted when the device runs low on disk space. On iOS 5.0.1 the `com.apple.MobileBackup` attribute is set on this folder to prevent it from being automatically backed up to iCloud. On iOS 5.0 this attribute is not available, and Apple take a dim view of using up users' iCloud space with cache files, so on iOS 5.0 and earlier this path is mapped back to `Library/Caches/Offline Data` instead.
 	
 	- (NSString *)temporaryDataPath;
 	
