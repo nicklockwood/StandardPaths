@@ -93,7 +93,7 @@
     
 #ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
 
-    if ([[[UIDevice currentDevice] systemVersion] compare:@"5.0.1" options:NSNumericSearch] == NSOrderedDescending)
+    if ([[[UIDevice currentDevice] systemVersion] compare:@"5.0.1" options:NSNumericSearch] == NSOrderedAscending)
     {
     	//store in Library/Caches to avoid wasting iCloud space
         return [self cacheDataPath];
