@@ -1,7 +1,8 @@
 //
 //  NSFileManager+StandardPaths.h
 //
-//  Version 1.0
+//  StandardPaths Project
+//  Version 1.0.1
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright 2010 Charcoal Design. All rights reserved.

@@ -1,7 +1,8 @@
 //
 //  NSFileManager+StandardPaths.m
 //
-//  Version 1.0
+//  StandardPaths Project
+//  Version 1.0.1
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright 2010 Charcoal Design. All rights reserved.
@@ -96,7 +97,7 @@
     if ([[[UIDevice currentDevice] systemVersion] compare:@"5.0.1" options:NSNumericSearch] == NSOrderedDescending)
     {
     	//store in Library/Caches to avoid wasting iCloud space
-        return [self cacheDataPath];
+        folder = [self cacheDataPath];
     }
     
 #endif
