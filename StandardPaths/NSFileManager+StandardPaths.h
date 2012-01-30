@@ -1,13 +1,13 @@
 //
 //  NSFileManager+StandardPaths.h
 //
-//  StandardPaths Project
-//  Version 1.0.1
+//  Version 1.1
 //
 //  Created by Nick Lockwood on 10/11/2011.
-//  Copyright 2010 Charcoal Design. All rights reserved.
+//  Copyright (C) 2012 Charcoal Design
 //
-//  Get the latest version of iCarousel from either of these locations:
+//  Distributed under the permissive zlib License
+//  Get the latest version from either of these locations:
 //
 //  http://charcoaldesign.co.uk/source/cocoa#standardpaths
 //  https://github.com/nicklockwood/StandardPaths
@@ -41,5 +41,12 @@
 - (NSString *)offlineDataPath;
 - (NSString *)temporaryDataPath;
 - (NSString *)resourcePath;
+
+- (NSString *)pathForPublicFile:(NSString *)file;
+- (NSString *)pathForPrivateFile:(NSString *)file;
+- (NSString *)pathForCacheFile:(NSString *)file;
+- (NSString *)pathForOfflineFile:(NSString *)file;
+- (NSString *)pathForTemporaryFile:(NSString *)file;
+- (NSString *)pathForResource:(NSString *)file;
 
 @end

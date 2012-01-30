@@ -1,13 +1,13 @@
 //
-//  NSFileManager+StandardPaths.m
+//  NSFileManager+StandardPaths.h
 //
-//  StandardPaths Project
-//  Version 1.0.1
+//  Version 1.1
 //
 //  Created by Nick Lockwood on 10/11/2011.
-//  Copyright 2010 Charcoal Design. All rights reserved.
+//  Copyright (C) 2012 Charcoal Design
 //
-//  Get the latest version of iCarousel from either of these locations:
+//  Distributed under the permissive zlib License
+//  Get the latest version from either of these locations:
 //
 //  http://charcoaldesign.co.uk/source/cocoa#standardpaths
 //  https://github.com/nicklockwood/StandardPaths
@@ -92,16 +92,6 @@
     //get application support folder
     NSString *folder = [self privateDataPath];
     
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
-
-    if ([[[UIDevice currentDevice] systemVersion] compare:@"5.0.1" options:NSNumericSearch] == NSOrderedDescending)
-    {
-    	//store in Library/Caches to avoid wasting iCloud space
-        folder = [self cacheDataPath];
-    }
-    
-#endif
-    
     //append offline data folder
     folder = [folder stringByAppendingPathComponent:@"Offline Data"];
     
@@ -112,10 +102,23 @@
 	}
     
 #ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
+#ifdef __IPHONE_5_1
     
-    //set the mobile backup flag to prevent files in this folder being backed up
-    u_int8_t b = 1;
-    setxattr([folder fileSystemRepresentation], "com.apple.MobileBackup", &b, 1, 0, 0);
+    if (&NSURLIsExcludedFromBackupKey && [NSURL instancesRespondToSelector:@selector(setResourceValue:forKey:error:)])
+    {
+        //use iOS5.1 method to exclude file from backp
+        NSURL *fileURL = [NSURL fileURLWithPath:folder isDirectory:YES];
+        [fileURL setResourceValue:[NSNumber numberWithBool:YES] forKey:NSURLIsExcludedFromBackupKey error:NULL];
+    }
+    else
+        
+#endif
+        
+    {
+        //use the iOS5.0.1 mobile backup flag to exclude file from backp
+        u_int8_t b = 1;
+        setxattr([folder fileSystemRepresentation], "com.apple.MobileBackup", &b, 1, 0, 0);
+    }
     
 #endif
     
@@ -130,6 +133,36 @@
 - (NSString *)resourcePath
 {
     return [[NSBundle mainBundle] resourcePath];
+}
+
+- (NSString *)pathForPublicFile:(NSString *)file
+{
+	return [[self publicDataPath] stringByAppendingPathComponent:file];
+}
+
+- (NSString *)pathForPrivateFile:(NSString *)file
+{
+    return [[self privateDataPath] stringByAppendingPathComponent:file];
+}
+
+- (NSString *)pathForCacheFile:(NSString *)file
+{
+    return [[self cacheDataPath] stringByAppendingPathComponent:file];
+}
+
+- (NSString *)pathForOfflineFile:(NSString *)file
+{
+    return [[self offlineDataPath] stringByAppendingPathComponent:file];
+}
+
+- (NSString *)pathForTemporaryFile:(NSString *)file
+{
+    return [[self temporaryDataPath] stringByAppendingPathComponent:file];
+}
+
+- (NSString *)pathForResource:(NSString *)file
+{
+    return [[self resourcePath] stringByAppendingPathComponent:file];
 }
 
 @end
