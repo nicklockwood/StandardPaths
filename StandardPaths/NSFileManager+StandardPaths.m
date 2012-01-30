@@ -106,7 +106,7 @@
     
     if (&NSURLIsExcludedFromBackupKey && [NSURL instancesRespondToSelector:@selector(setResourceValue:forKey:error:)])
     {
-        //use iOS5.1 method to exclude file from backp
+        //use iOS 5.1 method to exclude file from backp
         NSURL *fileURL = [NSURL fileURLWithPath:folder isDirectory:YES];
         [fileURL setResourceValue:[NSNumber numberWithBool:YES] forKey:NSURLIsExcludedFromBackupKey error:NULL];
     }
@@ -115,7 +115,7 @@
 #endif
         
     {
-        //use the iOS5.0.1 mobile backup flag to exclude file from backp
+        //use the iOS 5.0.1 mobile backup flag to exclude file from backp
         u_int8_t b = 1;
         setxattr([folder fileSystemRepresentation], "com.apple.MobileBackup", &b, 1, 0, 0);
     }
