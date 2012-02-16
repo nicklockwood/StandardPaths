@@ -1,3 +1,8 @@
+Version 1.1.1
+
+- Added path caching to improve performance when saving lots of files
+- Added fallback for when NSTemporaryDirectory() returns nil
+
 Version 1.1
 
 - Added support for new iOS 5.1 mobile backup flag.

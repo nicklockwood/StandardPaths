@@ -1,7 +1,7 @@
 //
 //  NSFileManager+StandardPaths.h
 //
-//  Version 1.1
+//  Version 1.1.1
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -31,6 +31,7 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 
+
 #import "NSFileManager+StandardPaths.h"
 #include <sys/xattr.h>
 
@@ -39,100 +40,152 @@
 
 - (NSString *)publicDataPath
 {
-    //user documents folder
-    return [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];  
+    @synchronized ([NSFileManager class])
+    {
+        static NSString *path = nil;
+        if (!path)
+        {
+            //user documents folder
+            path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+            
+            //retain path
+            path = [[NSString alloc] initWithString:path];
+        }
+        return path;
+    }
 }
 
 - (NSString *)privateDataPath
 {
-    //application support folder
-	NSString *folder = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) lastObject];
-    
-#ifndef __IPHONE_OS_VERSION_MAX_ALLOWED
-    
-    //append application name on Mac OS
-    NSString *identifier = [[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleNameKey];
-    folder = [folder stringByAppendingPathComponent:identifier];
-    
-#endif
-    
-    //create the folder if it doesn't exist
-	if (![self fileExistsAtPath:folder])
+    @synchronized ([NSFileManager class])
     {
-		[self createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:NULL];
-	}
-	
-	return folder;
+        static NSString *path = nil;
+        if (!path)
+        {
+            //application support folder
+            path = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) lastObject];
+            
+    #ifndef __IPHONE_OS_VERSION_MAX_ALLOWED
+            
+            //append application name on Mac OS
+            NSString *identifier = [[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleNameKey];
+            path = [path stringByAppendingPathComponent:identifier];
+            
+    #endif
+            
+            //create the folder if it doesn't exist
+            if (![self fileExistsAtPath:path])
+            {
+                [self createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:NULL];
+            }
+            
+            //retain path
+            path = [[NSString alloc] initWithString:path];
+        }
+        return path;
+    }
 }
 
 - (NSString *)cacheDataPath
 {
-    //get the cache folder path
-	NSString *folder = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
-    
-#ifndef __IPHONE_OS_VERSION_MAX_ALLOWED
-    
-    //append application bundle ID on Mac OS
-    NSString *identifier = [[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleIdentifierKey];
-    folder = [folder stringByAppendingPathComponent:identifier];
-    
-#endif
-    
-    //create the folder if it doesn't exist
-	if (![self fileExistsAtPath:folder])
+    @synchronized ([NSFileManager class])
     {
-		[self createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:NULL];
-	}
-	
-	return folder;
+        static NSString *path = nil;
+        if (!path)
+        {
+            //cache folder
+            path = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
+            
+    #ifndef __IPHONE_OS_VERSION_MAX_ALLOWED
+            
+            //append application bundle ID on Mac OS
+            NSString *identifier = [[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleIdentifierKey];
+            path = [path stringByAppendingPathComponent:identifier];
+            
+    #endif
+            
+            //create the folder if it doesn't exist
+            if (![self fileExistsAtPath:path])
+            {
+                [self createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:NULL];
+            }
+            
+            //retain path
+            path = [[NSString alloc] initWithString:path];
+        }
+        return path;
+    }
 }
 
 - (NSString *)offlineDataPath
 {
-    //get application support folder
-    NSString *folder = [self privateDataPath];
-    
-    //append offline data folder
-    folder = [folder stringByAppendingPathComponent:@"Offline Data"];
-    
-    //create the folder if it doesn't exist
-	if (![self fileExistsAtPath:folder])
+    static NSString *path = nil;
+    if (!path)
     {
-		[self createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:NULL];
-	}
-    
+        //offline data folder
+        path = [[self privateDataPath] stringByAppendingPathComponent:@"Offline Data"];
+        
+        //create the folder if it doesn't exist
+        if (![self fileExistsAtPath:path])
+        {
+            [self createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:NULL];
+        }
+        
 #ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
 #ifdef __IPHONE_5_1
-    
-    if (&NSURLIsExcludedFromBackupKey && [NSURL instancesRespondToSelector:@selector(setResourceValue:forKey:error:)])
-    {
-        //use iOS 5.1 method to exclude file from backp
-        NSURL *fileURL = [NSURL fileURLWithPath:folder isDirectory:YES];
-        [fileURL setResourceValue:[NSNumber numberWithBool:YES] forKey:NSURLIsExcludedFromBackupKey error:NULL];
-    }
-    else
+        
+        if (&NSURLIsExcludedFromBackupKey && [NSURL instancesRespondToSelector:@selector(setResourceValue:forKey:error:)])
+        {
+            //use iOS 5.1 method to exclude file from backp
+            NSURL *URL = [NSURL fileURLWithPath:path isDirectory:YES];
+            [URL setResourceValue:[NSNumber numberWithBool:YES] forKey:NSURLIsExcludedFromBackupKey error:NULL];
+        }
+        else
+            
+#endif
+            
+        {
+            //use the iOS 5.0.1 mobile backup flag to exclude file from backp
+            u_int8_t b = 1;
+            setxattr([path fileSystemRepresentation], "com.apple.MobileBackup", &b, 1, 0, 0);
+        }
         
 #endif
-        
-    {
-        //use the iOS 5.0.1 mobile backup flag to exclude file from backp
-        u_int8_t b = 1;
-        setxattr([folder fileSystemRepresentation], "com.apple.MobileBackup", &b, 1, 0, 0);
+        //retain path
+        path = [[NSString alloc] initWithString:path];
     }
-    
-#endif
-    
-    return folder;
+    return path;
 }
 
 - (NSString *)temporaryDataPath
 {
-    return NSTemporaryDirectory();
+    static NSString *path = nil;
+    if (!path)
+    {
+        //temporary directory (shouldn't change during app lifetime)
+        path = NSTemporaryDirectory();
+        
+        //apparently NSTemporaryDirectory() can return nil in some cases
+        if (!path)
+        {
+            path = [[self cacheDataPath] stringByAppendingPathComponent:@"Temporary Files"];
+        }
+        
+        //retain path
+        path = [[NSString alloc] initWithString:path];
+    }
+    return path;
 }
 
 - (NSString *)resourcePath
 {
-    return [[NSBundle mainBundle] resourcePath];
+    static NSString *path = nil;
+    if (!path)
+    {
+        //bundle path
+        path = [[NSString alloc] initWithString:[[NSBundle mainBundle] resourcePath]];
+    }
+    return path;
 }
 
 - (NSString *)pathForPublicFile:(NSString *)file

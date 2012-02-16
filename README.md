@@ -3,7 +3,7 @@ Purpose
 
 iOS and the Mac App Store place quite strict conditions on where files should be stored, but it's not always clear where the right place is. As of iOS 5 and iOS 5.0.1 it's even more complex because of the need to ensure that certain files aren't backed up to iCloud or aren't wiped out when the device gets full.
 
-StandardPaths provides a simple set of NSFileManager extension methods to access these folders in a clear and consistent way, and abstracts the complexities of applying the `com.apple.MobileBackup` attribute.
+StandardPaths provides a simple set of NSFileManager extension methods to access these folders in a clear and consistent way, and abstracts the complexities of applying the mobile backup attribute to disable iCloud backup on iOS 5 and above.
 
 
 Supported OS & SDK Versions
@@ -13,7 +13,7 @@ Supported OS & SDK Versions
 * Earliest supported deployment target - iOS 4.0 / Mac OS 10.6
 * Earliest compatible deployment target - iOS 3.0 / Mac OS 10.6
 
-NOTE: 'Supported' means that the library has been tested with this version. 'Compatible' means that the library should work on this iOS version (i.e. it doesn't rely on any unavailable SDK features) but is no longer being tested for compatibility and may require tweaking or bug fixes to run correctly.
+NOTE: 'Supported' means that the library has been tested with this version. 'Compatible' means that the library should work on this OS version (i.e. it doesn't rely on any unavailable SDK features) but is no longer being tested for compatibility and may require tweaking or bug fixes to run correctly.
 
 
 ARC Compatibility
@@ -62,7 +62,7 @@ Returns the path for `Library/Application Support/Offline Data` on iOS, or `Libr
 	- (NSString *)temporaryDataPath;
 	- (NSString *)pathForTemporaryFile:(NSString *)file;
 	
-Returns the path for the temporary data folder. This is a good place to store temporary files e.g. during some complex process where the data can't all fit in memory. Files stored here will be deleted when the application is closed.
+Returns the path for the temporary data folder. This is a good place to store temporary files e.g. during some complex process where the data can't all fit in memory. Files stored here *may* be deleted automatically when the application is closed, or when the device runs low on memory, but it's a good idea to delete them yourself anyway when you've finished with them.
 
 	- (NSString *)resourcePath;
 	- (NSString *)pathForResource:(NSString *)file;
