@@ -1,3 +1,10 @@
+Version 1.2
+
+- Added `normalizedPathForFile:` method for loading device and resolution-specific file versions based on standard suffixes
+- Added NSString category methods for file suffix manipulation
+- Added Mac and iOS test projects for normalized path functionality
+- Now requires iOS 4 or above
+
 Version 1.1.1
 
 - Added path caching to improve performance when saving lots of files

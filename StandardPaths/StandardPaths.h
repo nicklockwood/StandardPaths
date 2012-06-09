@@ -1,7 +1,7 @@
 //
-//  NSFileManager+StandardPaths.h
+//  StandardPaths.h
 //
-//  Version 1.1.1
+//  Version 1.2
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -33,6 +33,25 @@
 
 
 #import <Foundation/Foundation.h>
+#import <Availability.h>
+#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
+#import <UIKit/UIKit.h>
+#endif
+
+
+#ifndef UI_USER_INTERFACE_IDIOM
+#define UI_USER_INTERFACE_IDIOM() UIUserInterfaceIdiomDesktop
+
+typedef enum
+{
+    UIUserInterfaceIdiomPhone,
+    UIUserInterfaceIdiomPad,
+    UIUserInterfaceIdiomDesktop
+}
+UIUserInterfaceIdiom;
+
+#endif
+
 
 @interface NSFileManager (StandardPaths)
 
@@ -49,5 +68,27 @@
 - (NSString *)pathForOfflineFile:(NSString *)file;
 - (NSString *)pathForTemporaryFile:(NSString *)file;
 - (NSString *)pathForResource:(NSString *)file;
+
+- (NSString *)normalizedPathForFile:(NSString *)fileOrPath;
+
+@end
+
+
+@interface NSString (StandardPaths)
+
+- (NSString *)stringByAppendingInterfaceIdiomSuffix;
+- (NSString *)stringByDeletingInterfaceIdiomSuffix;
+- (NSString *)interfaceIdiomSuffix;
+- (UIUserInterfaceIdiom)interfaceIdiom;
+
+- (NSString *)stringByAppendingScaleSuffix;
+- (NSString *)stringByDeletingScaleSuffix;
+- (NSString *)scaleSuffix;
+- (CGFloat)scale;
+
+- (NSString *)stringByAppendingHDSuffix;
+- (NSString *)stringByDeletingHDSuffix;
+- (NSString *)HDSuffix;
+- (BOOL)isHD;
 
 @end
