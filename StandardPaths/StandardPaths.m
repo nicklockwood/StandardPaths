@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.2
+//  Version 1.2.1
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -267,7 +267,7 @@
             }
             
             //check for scaled version
-            if (SP_SCREEN_SCALE() > 1.0f)
+            if (SP_SCREEN_SCALE() > 1.0f && [path scale] == 1.0f)
             {
                 NSString *_path = [path stringByAppendingScaleSuffix];
                 if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
@@ -276,7 +276,7 @@
                 }
             }
         }
-        else if (SP_SCREEN_SCALE() > 1.0f)
+        else if (SP_SCREEN_SCALE() > 1.0f && [path scale] == 1.0f)
         {
             //check for HD version
             NSString *_path = [path stringByAppendingHDSuffix];

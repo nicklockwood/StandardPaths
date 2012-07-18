@@ -1,3 +1,7 @@
+Version 1.2.1
+
+- normalizedPathForFile: method will no longer double-apply the @2x extension in certain cases, causing the wrong file to be loaded.
+
 Version 1.2
 
 - Added `normalizedPathForFile:` method for loading device and resolution-specific file versions based on standard suffixes
