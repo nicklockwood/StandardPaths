@@ -1,3 +1,7 @@
+Version 1.2.2
+
+- StandardPaths's NSString extension methods will no longer mangle strings that contain double slashes, such as fully-qualified URLs. Note however that Apple's own path manipulation methods (e.e.g stringByAppendingPathExtension:) will still mangle these strings.
+
 Version 1.2.1
 
 - normalizedPathForFile: method will no longer double-apply the @2x extension in certain cases, causing the wrong file to be loaded.

@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.2.1
+//  Version 1.2.2
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -342,6 +342,21 @@
 
 @implementation NSString (StandardPaths)
 
+- (NSString *)SP_stringByAppendingPathExtension:(NSString *)extension
+{
+    return [self stringByAppendingFormat:@".%@", extension];
+}
+
+- (NSString *)SP_stringByDeletingPathExtension
+{
+    NSRange range = [self rangeOfString:@"." options:NSBackwardsSearch];
+    if (range.location != NSNotFound)
+    {
+        return [self substringToIndex:range.location];
+    }
+    return self;
+}
+
 - (NSString *)stringByAppendingInterfaceIdiomSuffix
 {
     NSString *suffix = @"";
@@ -358,8 +373,8 @@
         suffix = @"~mac";
     }
     NSString *extension = [self pathExtension];
-    NSString *path = [[self stringByDeletingPathExtension] stringByAppendingString:suffix];
-    return [extension length]? [path stringByAppendingPathExtension:extension]: path;
+    NSString *path = [[self SP_stringByDeletingPathExtension] stringByAppendingString:suffix];
+    return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
 }
 
 - (NSString *)stringByDeletingInterfaceIdiomSuffix
@@ -368,16 +383,16 @@
     if ([suffix length])
     {
         NSString *extension = [self pathExtension];
-        NSString *path = [self stringByDeletingPathExtension];
+        NSString *path = [self SP_stringByDeletingPathExtension];
         path = [path substringToIndex:[path length] - [suffix length]];
-        return [extension length]? [path stringByAppendingPathExtension:extension]: path;
+        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
     }
     return self;
 }
 
 - (NSString *)interfaceIdiomSuffix
 {
-    NSString *path = [self stringByDeletingPathExtension];
+    NSString *path = [self SP_stringByDeletingPathExtension];
     for (NSString *suffix in [NSArray arrayWithObjects:@"~iphone", @"~ipad", @"~mac", nil])
     {
         if ([path hasSuffix:suffix]) return suffix;
@@ -406,9 +421,9 @@
         NSString *extension = [self pathExtension];
         NSString *deviceSuffix = [self interfaceIdiomSuffix];
         NSString *scaleSuffix = [NSString stringWithFormat:@"@%ix", (int)SP_SCREEN_SCALE()];
-        NSString *path = [[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix];
+        NSString *path = [[self SP_stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix];
         path = [path stringByAppendingFormat:@"%@%@", scaleSuffix, deviceSuffix];
-        return [extension length]? [path stringByAppendingPathExtension:extension]: path;
+        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
     }
     return self;
 }
@@ -420,9 +435,9 @@
     {
         NSString *extension = [self pathExtension];
         NSString *deviceSuffix = [self interfaceIdiomSuffix];
-        NSString *path = [[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix];
+        NSString *path = [[self SP_stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix];
         path = [[path substringToIndex:[path length] - [scaleSuffix length]] stringByAppendingString:deviceSuffix];
-        return [extension length]? [path stringByAppendingPathExtension:extension]: path;
+        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
     }
     return self;
 }
@@ -431,7 +446,7 @@
 {
     //note: this isn't very robust as it only handles single-digit integer scales
     //for the forseeable future though, it's unlikely that we'll have to worry about that
-    NSString *path = [[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix];
+    NSString *path = [[self SP_stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix];
     if ([path length] >= 3)
     {
         NSString *scaleSuffix = [path substringFromIndex:[path length] - 3];
