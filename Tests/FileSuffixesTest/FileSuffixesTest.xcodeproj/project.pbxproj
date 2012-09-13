@@ -43,6 +43,9 @@
 		01C5B5BF158370DB001607BC /* image2.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895171582B32400023C5C /* image2.png */; };
 		01C5B5C01583714C001607BC /* Image1~mac.png in Resources */ = {isa = PBXBuildFile; fileRef = 01C5B5B2158365CC001607BC /* Image1~mac.png */; };
 		01C5B5C11583714C001607BC /* Image1@2x~mac.png in Resources */ = {isa = PBXBuildFile; fileRef = 01C5B5B515836A87001607BC /* Image1@2x~mac.png */; };
+		B25CB7B31602270F00D7D145 /* ViewController-568h.xib in Resources */ = {isa = PBXBuildFile; fileRef = B25CB7B21602270F00D7D145 /* ViewController-568h.xib */; };
+		B25CB7B61602286600D7D145 /* Image1-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B25CB7B51602286600D7D145 /* Image1-568h@2x.png */; };
+		B2C2AB8C16026DA1008A07DE /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B2C2AB8B16026DA1008A07DE /* Default-568h@2x.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -86,6 +89,9 @@
 		01C5B5A815835DD2001607BC /* WindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WindowController.m; sourceTree = "<group>"; };
 		01C5B5B2158365CC001607BC /* Image1~mac.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image1~mac.png"; sourceTree = "<group>"; };
 		01C5B5B515836A87001607BC /* Image1@2x~mac.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image1@2x~mac.png"; sourceTree = "<group>"; };
+		B25CB7B21602270F00D7D145 /* ViewController-568h.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = "ViewController-568h.xib"; sourceTree = "<group>"; };
+		B25CB7B51602286600D7D145 /* Image1-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image1-568h@2x.png"; sourceTree = "<group>"; };
+		B2C2AB8B16026DA1008A07DE /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -181,6 +187,7 @@
 				01C5B56215835B5C001607BC /* ViewController.h */,
 				01C5B56315835B5C001607BC /* ViewController.m */,
 				01C5B56415835B5C001607BC /* ViewController.xib */,
+				B25CB7B21602270F00D7D145 /* ViewController-568h.xib */,
 				01C5B56515835B5C001607BC /* ViewController~ipad.xib */,
 				01C5B56E15835B6D001607BC /* Supporting Files */,
 			);
@@ -236,8 +243,10 @@
 		01C5B5B815836D81001607BC /* iPhone */ = {
 			isa = PBXGroup;
 			children = (
+				B2C2AB8B16026DA1008A07DE /* Default-568h@2x.png */,
 				019895111582B32400023C5C /* image1.png */,
 				019895121582B32400023C5C /* image1@2x.png */,
+				B25CB7B51602286600D7D145 /* Image1-568h@2x.png */,
 				019895171582B32400023C5C /* image2.png */,
 			);
 			name = iPhone;
@@ -342,6 +351,9 @@
 				01C5B56D15835B5C001607BC /* ViewController~ipad.xib in Resources */,
 				01C5B5C01583714C001607BC /* Image1~mac.png in Resources */,
 				01C5B5C11583714C001607BC /* Image1@2x~mac.png in Resources */,
+				B25CB7B31602270F00D7D145 /* ViewController-568h.xib in Resources */,
+				B25CB7B61602286600D7D145 /* Image1-568h@2x.png in Resources */,
+				B2C2AB8C16026DA1008A07DE /* Default-568h@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -516,7 +528,7 @@
 				GCC_PREFIX_HEADER = "MacClasses/FileSuffixesTestMac-Prefix.pch";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				INFOPLIST_FILE = "MacClasses/FileSuffixesTestMac-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -539,7 +551,7 @@
 				GCC_PREFIX_HEADER = "MacClasses/FileSuffixesTestMac-Prefix.pch";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				INFOPLIST_FILE = "MacClasses/FileSuffixesTestMac-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				WRAPPER_EXTENSION = app;

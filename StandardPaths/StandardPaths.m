@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.2.2
+//  Version 1.3
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -37,10 +37,22 @@
 
 
 #ifndef __IPHONE_OS_VERSION_MAX_ALLOWED
+#define SP_IS_MACOS() 1
 #define SP_SCREEN_SCALE() ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)]? [[NSScreen mainScreen] backingScaleFactor]: 1.0f)
+#define SP_SCREEN_HEIGHT() ([NSScreen mainScreen].frame.size.height)
 #else
+#define SP_IS_MACOS() 0
 #define SP_SCREEN_SCALE() ([UIScreen mainScreen].scale)
+#define SP_SCREEN_HEIGHT() ([UIScreen mainScreen].bounds.size.height)
 #endif
+
+
+static NSString *const SPPhoneFileSuffix = @"~iphone";
+static NSString *const SPPadFileSuffix = @"~ipad";
+static NSString *const SPDesktopFileSuffix = @"~mac";
+static NSString *const SPRetinaFileSuffix = @"@2x";
+static NSString *const SPHDFileSuffix = @"-hd";
+static NSString *const SPTallscreenFileSuffix = @"-568h";
 
 
 @implementation NSFileManager (StandardPaths)
@@ -140,7 +152,7 @@
         
         if (&NSURLIsExcludedFromBackupKey && [NSURL instancesRespondToSelector:@selector(setResourceValue:forKey:error:)])
         {
-            //use iOS 5.1 method to exclude file from backp
+            //use iOS 5.1 method to exclude file from backup
             NSURL *URL = [NSURL fileURLWithPath:path isDirectory:YES];
             [URL setResourceValue:[NSNumber numberWithBool:YES] forKey:NSURLIsExcludedFromBackupKey error:NULL];
         }
@@ -256,7 +268,7 @@
             {
                 path = _path;
             }
-            else if ([[_path pathExtension] isEqualToString:@"png"])
+            else if (SP_IS_MACOS() && [[_path pathExtension] isEqualToString:@"png"])
             {
                 //check for HiDPI tiff file
                 _path = [[_path stringByDeletingPathExtension] stringByAppendingPathExtension:@"tiff"];
@@ -269,17 +281,17 @@
             //check for scaled version
             if (SP_SCREEN_SCALE() > 1.0f && [path scale] == 1.0f)
             {
-                NSString *_path = [path stringByAppendingScaleSuffix];
+                _path = [path stringByAppendingScaleSuffix];
                 if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
                 {
                     path = _path;
                 }
             }
         }
-        else if (SP_SCREEN_SCALE() > 1.0f && [path scale] == 1.0f)
+        else
         {
-            //check for HD version
-            NSString *_path = [path stringByAppendingHDSuffix];
+            //check for tallscreen (iPhone 5) version
+            NSString *_path = [path stringByAppendingTallscreenSuffix];
             if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
             {
                 path = _path;
@@ -287,21 +299,40 @@
             else
             {
                 //check for scaled version
-                NSString *_path = [path stringByAppendingScaleSuffix];
+                _path = [_path stringByAppendingScaleSuffix];
                 if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
                 {
                     path = _path;
                 }
             }
+            
+            if (SP_SCREEN_SCALE() > 1.0f && [path scale] == 1.0f)
+            {
+                //check for HD version
+                NSString *_path = [path stringByAppendingHDSuffix];
+                if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
+                {
+                    path = _path;
+                }
+                else
+                {
+                    //check for scaled version
+                    _path = [path stringByAppendingScaleSuffix];
+                    if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
+                    {
+                        path = _path;
+                    }
+                }
+            }
         }
         
-        //check for ipad/iphone version
+        //check for ipad/iphone/mac-specific version
         NSString *_path = [path stringByAppendingInterfaceIdiomSuffix];
         if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
         {
             path = _path;
         }
-        else if ([[_path pathExtension] isEqualToString:@"png"])
+        else if (SP_IS_MACOS() && [[_path pathExtension] isEqualToString:@"png"])
         {
             //check for HiDPI tiff file
             _path = [[_path stringByDeletingPathExtension] stringByAppendingPathExtension:@"tiff"];
@@ -311,14 +342,14 @@
             }
         }
         
-        if ([[path pathExtension] isEqualToString:@"png"])
+        if (SP_IS_MACOS() && [[path pathExtension] isEqualToString:@"png"])
         {
             //check for HiDPI tiff file
-            NSString *_path = [[path stringByDeletingPathExtension] stringByAppendingPathExtension:@"tiff"];
+            _path = [[path stringByDeletingPathExtension] stringByAppendingPathExtension:@"tiff"];
             if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
             {
                 path = _path;
-            }
+            }     
         }
         else if (![[NSFileManager defaultManager] fileExistsAtPath:path])
         {
@@ -362,15 +393,15 @@
     NSString *suffix = @"";
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
     {
-        suffix = @"~iphone";
+        suffix = SPPhoneFileSuffix;
     }
     else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
     {
-        suffix = @"~ipad";
+        suffix = SPPadFileSuffix;
     }
     else
     {
-        suffix = @"~mac";
+        suffix = SPDesktopFileSuffix;
     }
     NSString *extension = [self pathExtension];
     NSString *path = [[self SP_stringByDeletingPathExtension] stringByAppendingString:suffix];
@@ -393,7 +424,7 @@
 - (NSString *)interfaceIdiomSuffix
 {
     NSString *path = [self SP_stringByDeletingPathExtension];
-    for (NSString *suffix in [NSArray arrayWithObjects:@"~iphone", @"~ipad", @"~mac", nil])
+    for (NSString *suffix in [NSArray arrayWithObjects:SPPhoneFileSuffix, SPPadFileSuffix, SPDesktopFileSuffix, nil])
     {
         if ([path hasSuffix:suffix]) return suffix;
     }
@@ -403,11 +434,11 @@
 - (UIUserInterfaceIdiom)interfaceIdiom
 {
     NSString *suffix = [self interfaceIdiomSuffix];
-    if ([suffix isEqualToString:@"~ipad"])
+    if ([suffix isEqualToString:SPPadFileSuffix])
     {
         return UIUserInterfaceIdiomPad;
     }
-    else if ([suffix isEqualToString:@"~iphone"])
+    else if ([suffix isEqualToString:SPPhoneFileSuffix])
     {
         return UIUserInterfaceIdiomPhone;
     }
@@ -419,10 +450,10 @@
     if (SP_SCREEN_SCALE() > 1.0f)
     {
         NSString *extension = [self pathExtension];
-        NSString *deviceSuffix = [self interfaceIdiomSuffix];
+        NSString *idiomSuffix = [self interfaceIdiomSuffix];
         NSString *scaleSuffix = [NSString stringWithFormat:@"@%ix", (int)SP_SCREEN_SCALE()];
         NSString *path = [[self SP_stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix];
-        path = [path stringByAppendingFormat:@"%@%@", scaleSuffix, deviceSuffix];
+        path = [path stringByAppendingFormat:@"%@%@", scaleSuffix, idiomSuffix];
         return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
     }
     return self;
@@ -434,9 +465,9 @@
     if ([scaleSuffix length])
     {
         NSString *extension = [self pathExtension];
-        NSString *deviceSuffix = [self interfaceIdiomSuffix];
+        NSString *idiomSuffix = [self interfaceIdiomSuffix];
         NSString *path = [[self SP_stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix];
-        path = [[path substringToIndex:[path length] - [scaleSuffix length]] stringByAppendingString:deviceSuffix];
+        path = [[path substringToIndex:[path length] - [scaleSuffix length]] stringByAppendingString:idiomSuffix];
         return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
     }
     return self;
@@ -473,16 +504,21 @@
     return 1.0f;
 }
 
+- (BOOL)isRetina
+{
+    return [self scale] == 2.0f;
+}
+
 - (NSString *)stringByAppendingHDSuffix
 {
     if (SP_SCREEN_SCALE() > 1.0f || UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPhone)
     {
         NSString *extension = [self pathExtension];
-        NSString *deviceSuffix = [self interfaceIdiomSuffix];
+        NSString *idiomSuffix = [self interfaceIdiomSuffix];
         NSString *scaleSuffix = [self scaleSuffix];
         NSString *path = [[[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix];
-        path = [path stringByAppendingFormat:@"-hd%@%@", scaleSuffix, deviceSuffix];
-        return [extension length]? [path stringByAppendingPathExtension:extension]: path;
+        path = [path stringByAppendingFormat:@"%@%@%@", SPHDFileSuffix, scaleSuffix, idiomSuffix];
+        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
     }
     return self;
 }
@@ -493,12 +529,12 @@
     if ([HDSuffix length])
     {
         NSString *extension = [self pathExtension];
-        NSString *deviceSuffix = [self interfaceIdiomSuffix];
+        NSString *idiomSuffix = [self interfaceIdiomSuffix];
         NSString *scaleSuffix = [self scaleSuffix];
         NSString *path = [[[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix];
         path = [path substringToIndex:[path length] - [HDSuffix length]];
-        path = [path stringByAppendingFormat:@"%@%@", scaleSuffix, deviceSuffix];
-        return [extension length]? [path stringByAppendingPathExtension:extension]: path;
+        path = [path stringByAppendingFormat:@"%@%@", scaleSuffix, idiomSuffix];
+        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
     }
     return self;
 }
@@ -506,9 +542,9 @@
 - (NSString *)HDSuffix
 {
     NSString *path = [[[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix];
-    if ([path hasSuffix:@"-hd"])
+    if ([path hasSuffix:SPHDFileSuffix])
     {
-        return @"-hd";
+        return SPHDFileSuffix;
     }
     return @"";
 }
@@ -516,6 +552,51 @@
 - (BOOL)isHD
 {
     return [[self HDSuffix] length] > 0;
+}
+
+- (NSString *)stringByAppendingTallscreenSuffix
+{
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && SP_SCREEN_HEIGHT() == 568.0f)
+    {
+        NSString *extension = [self pathExtension];
+        NSString *idiomSuffix = [self interfaceIdiomSuffix];
+        NSString *scaleSuffix = [self scaleSuffix];
+        NSString *path = [[[[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix] stringByDeletingHDSuffix];
+        path = [path stringByAppendingFormat:@"%@%@%@", SPTallscreenFileSuffix, scaleSuffix, idiomSuffix];
+        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
+    }
+    return self;
+}
+
+- (NSString *)stringByDeletingTallscreenSuffix
+{
+    NSString *tallscreenSuffix = [self tallscreenSuffix];
+    if ([tallscreenSuffix length])
+    {
+        NSString *extension = [self pathExtension];
+        NSString *idiomSuffix = [self interfaceIdiomSuffix];
+        NSString *scaleSuffix = [self scaleSuffix];
+        NSString *path = [[[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix];
+        path = [path substringToIndex:[path length] - [tallscreenSuffix length]];
+        path = [path stringByAppendingFormat:@"%@%@", scaleSuffix, idiomSuffix];
+        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
+    }
+    return self;
+}
+
+- (NSString *)tallscreenSuffix
+{
+    NSString *path = [[[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix];
+    if ([path hasSuffix:SPTallscreenFileSuffix])
+    {
+        return SPTallscreenFileSuffix;
+    }
+    return @"";
+}
+
+- (BOOL)isTallscreen
+{
+    return [[self tallscreenSuffix] length] > 0;
 }
 
 @end

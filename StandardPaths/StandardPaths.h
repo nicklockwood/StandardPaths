@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.2.2
+//  Version 1.3
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -85,10 +85,16 @@ UIUserInterfaceIdiom;
 - (NSString *)stringByDeletingScaleSuffix;
 - (NSString *)scaleSuffix;
 - (CGFloat)scale;
+- (BOOL)isRetina;
 
 - (NSString *)stringByAppendingHDSuffix;
 - (NSString *)stringByDeletingHDSuffix;
 - (NSString *)HDSuffix;
 - (BOOL)isHD;
+
+- (NSString *)stringByAppendingTallscreenSuffix;
+- (NSString *)stringByDeletingTallscreenSuffix;
+- (NSString *)tallscreenSuffix;
+- (BOOL)isTallscreen;
 
 @end

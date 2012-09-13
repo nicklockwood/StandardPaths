@@ -1,3 +1,7 @@
+Version 1.3
+
+- Added support for the iPhone 5 -568h@2x suffix for file paths. Apple currently provides no support for this in UIImage or when loading nib files, but StandardPaths can now detect these files automatically and generate the correct path automatically when needed.
+
 Version 1.2.2
 
 - StandardPaths's NSString extension methods will no longer mangle strings that contain double slashes, such as fully-qualified URLs. Note however that Apple's own path manipulation methods (e.e.g stringByAppendingPathExtension:) will still mangle these strings.

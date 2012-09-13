@@ -73,7 +73,17 @@ Returns the path for files in the application resources folder. This basically j
 
     - (NSString *)normalizedPathForFile:(NSString *)fileOrPath;
 
-This method serves several functions. Firstly, it can take a path fragment or file name and convert it to a complete path by prefixing the application bundle resources path. Secondly, it replicates the behaviours of Mac OS and iOS when finding different versions of resource files such as @2x image files and files suffixed with ~ipad or ~iphone. These behaviours will work with any file, not just images or nibs, so it can be useful if you want to load @2x versions of 3D models or shaders for OpenGL applications without writing a lot of branching code. Additionally, this method also implements a few pseudo-standards such as the Cocos2D -hd suffix to indicate image files that should be used both for Retina iPhones and standard definition iPads/Macs. Finally, it correctly maps .png image paths to the multi-page TIFF files used on Mac OS 10.7 for handling standard and Retina scale images. Unlike the other NSFileManager extension methods, this method will return nil if the file does not exist. This method makes multiple filesystem calls, so may be relatively slow the first time it is called for each path, however it caches the result for a given input so the next time it will be faster. See the Image file suffixes section below for more information.
+This method serves several functions:
+
+1) It can take a path fragment or file name and convert it to a complete path by prefixing the application bundle resources path. Secondly, it replicates the behaviours of Mac OS and iOS when finding different versions of resource files such as @2x image files and files suffixed with ~ipad or ~iphone or ~mac.
+
+2) It supports the iPhone 5 "-568h" suffix for files designed specifically for the taller screen. Apple don't provide any built-in support for this suffix other than on the Default.png startup image, but the `normalizedFilePathForFile:` method will detect and use any file with this extension (with or without the @2x) when running on an iPhone 5.
+
+3) It implements a number of pseudo-standards such as the Cocos2D -hd suffix to indicate image files that should be used both for Retina iPhones and standard definition iPads/Macs.
+
+4) It correctly maps .png image paths to the multi-page TIFF files used on Mac OS 10.7+ for combining standard and Retina scale images into a single file.
+
+These behaviours will work with any file, not just images or nibs, so it can be useful if you want to load device-specific versions of nib files, 3D models or shaders for OpenGL applications without writing a lot of branching code. Unlike the other NSFileManager extension methods, this method will return nil if the file does not exist. This method makes multiple filesystem calls, so may be relatively slow the first time it is called for each path, however it caches the result for a given input so the next time it will be faster. See the Image file suffixes section below for more information.
 
 
 NSString extension methods
@@ -112,6 +122,10 @@ This method returns the @2x suffix if found, or @"" if not.
     - (CGFloat)scale;
     
 This method returns the image scale value for a file path as a floating point number, e.g. 2.0f if the file includes an -hd suffix (on iPhone) or @2x suffix and 1.0f if it doesn't.
+
+    - (BOOL)isRetina;
+    
+Shorthand method to test if the string has a scale suffix of @2x.
     
     - (NSString *)stringByAppendingHDSuffix;
     
@@ -129,6 +143,22 @@ This method returns @"-hd" if the string has the -hd suffix and @"" if it doesn'
 
 This method returns YES if the string has an -hd suffix and NO if it doesn't.
 
+    - (NSString *)stringByAppendingTallscreenSuffix;
+    
+This method appends the -568h suffix to the string if the device is an iPhone 5, and does nothing if it isn't. See the Image file suffixes section below for more information. It does not also add the @2x suffix, so bear that in mind if you are attempting to generate an image path.
+    
+    - (NSString *)stringByDeletingTallscreenSuffix;
+    
+This method deletes the -568h suffix from the string if found, or does nothing if the suffix is not found. It *does not* remove the @2x suffix if present.
+    
+    - (NSString *)tallscreenSuffix;
+    
+This method returns @"-568h" if the string has the -568h suffix and @"" if it doesn't.
+    
+    - (BOOL)isTallscreen;
+    
+This method returns YES if the string has a -568h suffix and NO if it doesn't.
+    
 
 Image file suffixes
 --------------------
@@ -141,13 +171,15 @@ Naming your images with the @2x suffix works for the Retina iPhone but not the s
 
 The -hd suffix is a solution introduced by the Cocos2D library to the problem of wanting to use the same 2x graphics for both the iPhone Retina display and the iPad standard definition display by using the same -hd filename suffix for both.
 
-StandardPaths supports this solution by adding some utility methods to NSString for automatically applying this suffix to file paths when using the `normalizedFilePath:` method. Files using the @2x, ~ipad and -hd conventions (or any combination thereof) are automatically detected and loaded as appropriate. For example, If you pass in an image file called foo.png, GLImage will automatically look for foo@2x.png or foo-hd.png on a Retina iPhone, or foo~ipad.png or foo-hd.png on an iPad and will also find foo-hd@2x.png if you are using a Retina iPad. For cross-platform consistency, StandardPaths also extends these concepts to Mac OS by introducing a ~mac suffix, and treating Mac the same way as iPad with respect to the -hd suffix. It will also look for multi-page TIFF file alternatives as appropriate.
+The -568h suffix was introduced with the iPhone 5 to support Default.png launch images which are 568 points high (1136px) intead of the regular 480 points. StandardPaths extends this convention so it can be used for all files. It is typically used for images, and because the iPhone 5 has a retina display it should be combined with the @2x scale suffix. As with all the other suffixes though, StandardPaths also supports the use of this suffix with other file types such as nibs.
+
+StandardPaths supports this solution by adding some utility methods to NSString for automatically applying this suffix to file paths when using the `normalizedFilePath:` method. Files using the @2x, ~ipad, -hd and -568h conventions (or any combination thereof) are automatically detected and loaded as appropriate. For example, If you pass in an image file called foo.png, StandardPaths will automatically look for foo@2x.png or foo-hd.png on a Retina iPhone, or foo~ipad.png or foo-hd.png on an iPad and will also find foo-hd@2x.png if you are using a Retina iPad. For cross-platform consistency, StandardPaths also extends these concepts to Mac OS by introducing a ~mac suffix, and treating Mac the same way as iPad with respect to the -hd suffix. It will also look for multi-page TIFF file alternatives as appropriate.
 
 
 Usage
 -----------
 
-As long as you have included the NSFileManager+StandardPaths.h file, you can call any of the methods above on any instance of NSFileManager. For example, if you wanted to get the path to a file called "Foo.bar" in the cache folder, you could write either of the following:
+As long as you have included the StandardPaths.h file, you can call any of the methods above on any instance of NSFileManager. For example, if you wanted to get the path to a file called "Foo.bar" in the cache folder, you could write either of the following:
 
     NSString *path = [[NSFileManager defaultManager] pathForCacheFile:@"Foo.bar"];
     NSString *path = [[[NSFileManager defaultManager] cacheDataPath] stringByAppendingPathComponent:@"Foo.bar"];
@@ -162,3 +194,10 @@ To get a normalized file path that is not inside the application bundle, either 
     NSString *path = [manager normalizedPathForFile:[manager publicDataPath:@"Foo.png"]];
     
 Note that file lookups outside of the application bundle are not cached (as the files are not changed) so it is more CPU-intensive to use `normalizedPathForFile:` for these files. If you are accessing the same file multiple times, you may wish to cache the path yourself rather than calling the method multiple times.
+
+For non-file-path strings such as NSDictionary keys or nib file names, you can use the NSString extension methods. So for example if you wanted to load a bespoke version of a nib file on iPhone 5 you could select our nib with the following code:
+
+    NSString *nibName = [@"ViewController" stringByAppendingTallscreenSuffix];
+    UIViewController *controller = [[ViewController alloc] initWithNibName:nibName bundle:nil];
+  
+This would then load a file called "ViewController.xib" on an iPhone 4, and a file called "ViewController-568h.xib" on an iPhone 5.
