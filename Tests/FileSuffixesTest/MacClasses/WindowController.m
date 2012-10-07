@@ -18,13 +18,13 @@
 - (void)awakeFromNib
 {    
     //NOTE: we are not using [[NSImage alloc] initWithContentsOfFile:...] here
-    //to avoid conflicts with built-in @2x suffix handling behaviour
+    //to avoid conflicts with built-in NSImage suffix handling behaviour
     
     //load image 1
     NSString *path1 = [[NSFileManager defaultManager] normalizedPathForFile:@"image1.png"];
     NSData *data1 = [NSData dataWithContentsOfFile:path1];
     NSImage *image1 = [[NSImage alloc] initWithData:data1];
-    CGFloat scale = [path1 scale];
+    CGFloat scale = [path1 scaleFromSuffix];
     image1.size = CGSizeMake(image1.size.width / scale, image1.size.width / scale);
     self.imageView1.image = image1;
     

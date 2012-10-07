@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.3
+//  Version 1.4
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -39,6 +39,11 @@
 #endif
 
 
+#ifndef SP_SWIZZLE_ENABLED
+#define SP_SWIZZLE_ENABLED 1
+#endif
+
+
 #ifndef UI_USER_INTERFACE_IDIOM
 #define UI_USER_INTERFACE_IDIOM() UIUserInterfaceIdiomDesktop
 
@@ -51,6 +56,14 @@ typedef enum
 UIUserInterfaceIdiom;
 
 #endif
+
+
+static NSString *const SPPhoneSuffix = @"~iphone";
+static NSString *const SPPadSuffix = @"~ipad";
+static NSString *const SPDesktopSuffix = @"~mac";
+static NSString *const SPRetinaSuffix = @"@2x";
+static NSString *const SPHDSuffix = @"-hd";
+static NSString *const SPRetina4Suffix = @"-568h";
 
 
 @interface NSFileManager (StandardPaths)
@@ -76,25 +89,32 @@ UIUserInterfaceIdiom;
 
 @interface NSString (StandardPaths)
 
+- (NSString *)stringByAppendingPathSuffix:(NSString *)suffix;
+- (NSString *)stringByDeletingPathSuffix:(NSString *)suffix;
+- (BOOL)hasPathSuffix:(NSString *)suffix;
+
+- (NSString *)stringByAppendingSuffixForInterfaceIdiom:(UIUserInterfaceIdiom)idiom;
 - (NSString *)stringByAppendingInterfaceIdiomSuffix;
 - (NSString *)stringByDeletingInterfaceIdiomSuffix;
 - (NSString *)interfaceIdiomSuffix;
 - (UIUserInterfaceIdiom)interfaceIdiom;
 
-- (NSString *)stringByAppendingScaleSuffix;
+- (NSString *)stringByAppendingSuffixForScale:(CGFloat)scale;
+- (NSString *)stringByAppendingDeviceScaleSuffix;
 - (NSString *)stringByDeletingScaleSuffix;
 - (NSString *)scaleSuffix;
-- (CGFloat)scale;
-- (BOOL)isRetina;
+- (BOOL)hasRetinaSuffix;
 
 - (NSString *)stringByAppendingHDSuffix;
+- (NSString *)stringByAppendingHDSuffixIfDeviceIsHD;
 - (NSString *)stringByDeletingHDSuffix;
-- (NSString *)HDSuffix;
-- (BOOL)isHD;
+- (BOOL)hasHDSuffix;
 
-- (NSString *)stringByAppendingTallscreenSuffix;
-- (NSString *)stringByDeletingTallscreenSuffix;
-- (NSString *)tallscreenSuffix;
-- (BOOL)isTallscreen;
+- (NSString *)stringByAppendingRetina4Suffix;
+- (NSString *)stringByAppendingRetina4SuffixIfDeviceIsRetina4;
+- (NSString *)stringByDeletingRetina4Suffix;
+- (BOOL)hasRetina4Suffix;
+
+- (CGFloat)scaleFromSuffix;
 
 @end

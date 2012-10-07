@@ -1,3 +1,9 @@
+Version 1.4
+
+- Now includes swizzling of UIKit methods to add automatic support for -hd and -568h suffixes when loading images and nib files (this can be disabled with the SP_SWIZZLE_ENABLED preprocessor macro if desired).
+- Updated API to include more string suffic manipulation methods and more sensible naming conventions for the existing methods. Note that some methods have slightly changed their behaviour.
+- Fixed a small bug in the normalizedPathForFile: method when loading images on Retina Macs (wrong image was selected).
+
 Version 1.3
 
 - Added support for the iPhone 5 -568h@2x suffix for file paths. Apple currently provides no support for this in UIImage or when loading nib files, but StandardPaths can now detect these files automatically and generate the correct path automatically when needed.

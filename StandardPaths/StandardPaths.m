@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.3
+//  Version 1.4
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -33,26 +33,44 @@
 
 
 #import "StandardPaths.h"
+#import <objc/runtime.h> 
 #include <sys/xattr.h>
 
 
 #ifndef __IPHONE_OS_VERSION_MAX_ALLOWED
 #define SP_IS_MACOS() 1
+#define SP_IS_HD() 1
+#define SP_IS_RETINA4() 0
 #define SP_SCREEN_SCALE() ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)]? [[NSScreen mainScreen] backingScaleFactor]: 1.0f)
-#define SP_SCREEN_HEIGHT() ([NSScreen mainScreen].frame.size.height)
 #else
 #define SP_IS_MACOS() 0
+#define SP_IS_HD() (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPhone || SP_SCREEN_SCALE() > 1.0f)
+#define SP_IS_RETINA4() ([UIScreen mainScreen].bounds.size.height == 568.0f)
 #define SP_SCREEN_SCALE() ([UIScreen mainScreen].scale)
-#define SP_SCREEN_HEIGHT() ([UIScreen mainScreen].bounds.size.height)
 #endif
+#define SP_IS_RETINA() (SP_SCREEN_SCALE() == 2.0f)
 
 
-static NSString *const SPPhoneFileSuffix = @"~iphone";
-static NSString *const SPPadFileSuffix = @"~ipad";
-static NSString *const SPDesktopFileSuffix = @"~mac";
-static NSString *const SPRetinaFileSuffix = @"@2x";
-static NSString *const SPHDFileSuffix = @"-hd";
-static NSString *const SPTallscreenFileSuffix = @"-568h";
+static void SP_swizzleInstanceMethod(Class c, SEL original, SEL replacement)
+{
+    Method a = class_getInstanceMethod(c, original);
+    Method b = class_getInstanceMethod(c, replacement);
+    if (class_addMethod(c, original, method_getImplementation(b), method_getTypeEncoding(b)))
+    {
+        class_replaceMethod(c, replacement, method_getImplementation(a), method_getTypeEncoding(a));
+    }
+    else
+    {
+        method_exchangeImplementations(a, b);
+    }
+}
+
+static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
+{
+    Method a = class_getClassMethod(c, original);
+    Method b = class_getClassMethod(c, replacement);
+    method_exchangeImplementations(a, b);
+}
 
 
 @implementation NSFileManager (StandardPaths)
@@ -245,12 +263,12 @@ static NSString *const SPTallscreenFileSuffix = @"-568h";
         NSString *path = fileOrPath;
         if (![path isAbsolutePath])
         {
-            path = [[self resourcePath] stringByAppendingPathComponent:path];
+            path = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:path];
         }
         
         //check cache
         NSString *cacheKey = path;
-        BOOL cachable = [path hasPrefix:[self resourcePath]];
+        BOOL cachable = [path hasPrefix:[[NSBundle mainBundle] resourcePath]];
         if (cachable)
         {
             NSString *_path = [cache objectForKey:cacheKey];
@@ -259,112 +277,113 @@ static NSString *const SPTallscreenFileSuffix = @"-568h";
                 return [_path length]? _path: nil;
             }
         }
-                    
-        if (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPhone)
+        
+        NSArray *suffixes = [NSArray arrayWithObject:[[path pathExtension] length]? @"": @".png"];
+        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
         {
-            //check for HD version
-            NSString *_path = [path stringByAppendingHDSuffix];
-            if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
+            //check for Retina4 version
+            if (SP_IS_RETINA4())
             {
-                path = _path;
+                suffixes = [suffixes arrayByAddingObject:SPRetina4Suffix];
             }
-            else if (SP_IS_MACOS() && [[_path pathExtension] isEqualToString:@"png"])
+            
+            //check for Retina
+            if (SP_IS_RETINA())
             {
-                //check for HiDPI tiff file
-                _path = [[_path stringByDeletingPathExtension] stringByAppendingPathExtension:@"tiff"];
-                if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
+                for (NSString *suffix in [suffixes objectEnumerator])
                 {
-                    path = _path;
+                    suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPHDSuffix]];
+                    suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPRetinaSuffix]];
+                }
+            }
+
+            //add iPhone suffixes
+            for (NSString *suffix in [suffixes objectEnumerator])
+            {
+                suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPPhoneSuffix]];
+            }
+        }
+        else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+        {
+            //add HD suffix
+            suffixes = [suffixes arrayByAddingObject:SPHDSuffix];
+            
+            //check for Retina
+            if (SP_IS_RETINA())
+            {
+                for (NSString *suffix in [suffixes objectEnumerator])
+                {
+                    suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPRetinaSuffix]];
                 }
             }
             
-            //check for scaled version
-            if (SP_SCREEN_SCALE() > 1.0f && [path scale] == 1.0f)
+            //add iPad suffixes
+            for (NSString *suffix in [suffixes objectEnumerator])
             {
-                _path = [path stringByAppendingScaleSuffix];
-                if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
-                {
-                    path = _path;
-                }
+                suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPPadSuffix]];
             }
         }
-        else
+        else //mac
         {
-            //check for tallscreen (iPhone 5) version
-            NSString *_path = [path stringByAppendingTallscreenSuffix];
-            if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
+            //add HD suffix
+            suffixes = [suffixes arrayByAddingObject:SPHDSuffix];
+            
+            //check for HiDPI tiff file
+            for (NSString *suffix in [suffixes objectEnumerator])
             {
-                path = _path;
+                NSString *_path = [[[path stringByAppendingPathSuffix:suffix]
+                                    stringByDeletingPathExtension]
+                                   stringByAppendingPathExtension:@"tiff"];
+                
+                if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
+                {
+                    suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingString:@".tiff"]];
+                }
+            }
+  
+            //check for Retina
+            if (SP_IS_RETINA())
+            {
+                for (NSString *suffix in [suffixes objectEnumerator])
+                {
+                    suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPRetinaSuffix]];
+                }
+            }
+            
+            //add Mac suffixes
+            for (NSString *suffix in [suffixes objectEnumerator])
+            {
+                suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPDesktopSuffix]];
+            }
+        }
+        
+        //try all suffixes
+        NSString *_path = nil;
+        for (NSString *suffix in [suffixes reverseObjectEnumerator])
+        {
+            if ([[suffix pathExtension] length])
+            {
+                _path = [[path stringByDeletingPathExtension] stringByAppendingString:suffix];
             }
             else
             {
-                //check for scaled version
-                _path = [_path stringByAppendingScaleSuffix];
-                if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
-                {
-                    path = _path;
-                }
+                _path = [path stringByAppendingPathSuffix:suffix];
             }
-            
-            if (SP_SCREEN_SCALE() > 1.0f && [path scale] == 1.0f)
-            {
-                //check for HD version
-                NSString *_path = [path stringByAppendingHDSuffix];
-                if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
-                {
-                    path = _path;
-                }
-                else
-                {
-                    //check for scaled version
-                    _path = [path stringByAppendingScaleSuffix];
-                    if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
-                    {
-                        path = _path;
-                    }
-                }
-            }
-        }
-        
-        //check for ipad/iphone/mac-specific version
-        NSString *_path = [path stringByAppendingInterfaceIdiomSuffix];
-        if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
-        {
-            path = _path;
-        }
-        else if (SP_IS_MACOS() && [[_path pathExtension] isEqualToString:@"png"])
-        {
-            //check for HiDPI tiff file
-            _path = [[_path stringByDeletingPathExtension] stringByAppendingPathExtension:@"tiff"];
             if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
             {
-                path = _path;
+                break;
             }
-        }
-        
-        if (SP_IS_MACOS() && [[path pathExtension] isEqualToString:@"png"])
-        {
-            //check for HiDPI tiff file
-            _path = [[path stringByDeletingPathExtension] stringByAppendingPathExtension:@"tiff"];
-            if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
-            {
-                path = _path;
-            }     
-        }
-        else if (![[NSFileManager defaultManager] fileExistsAtPath:path])
-        {
-            //file doesn't exist
-            path = nil;
+            _path = nil;
         }
         
         //add to cache
         if (cachable)
         {
-            [cache setObject:path ?: @"" forKey:cacheKey];
+            [cache setObject:_path ?: @"" forKey:cacheKey];
         }
-                    
+        
         //return path
-        return path;
+        return _path;
     }
 }
 
@@ -375,17 +394,76 @@ static NSString *const SPTallscreenFileSuffix = @"-568h";
 
 - (NSString *)SP_stringByAppendingPathExtension:(NSString *)extension
 {
-    return [self stringByAppendingFormat:@".%@", extension];
+    return [extension length]? [self stringByAppendingFormat:@".%@", extension]: self;
 }
 
 - (NSString *)SP_stringByDeletingPathExtension
 {
-    NSRange range = [self rangeOfString:@"." options:NSBackwardsSearch];
+    NSRange lastPathRange = [self rangeOfString:@"/" options:NSBackwardsSearch];
+    if (lastPathRange.location != NSNotFound)
+    {
+        lastPathRange = NSMakeRange(lastPathRange.location, [self length] - lastPathRange.location);
+    }
+    else
+    {
+        lastPathRange = NSMakeRange(0, [self length]);
+    }
+    NSRange range = [self rangeOfString:@"." options:NSBackwardsSearch range:lastPathRange];
     if (range.location != NSNotFound)
     {
         return [self substringToIndex:range.location];
     }
     return self;
+}
+    
+- (NSString *)stringByAppendingPathSuffix:(NSString *)suffix
+{
+    NSString *extension = [self pathExtension];
+    NSString *path = [[self SP_stringByDeletingPathExtension] stringByAppendingString:suffix];
+    return [path SP_stringByAppendingPathExtension:extension];
+}
+
+- (NSString *)stringByDeletingPathSuffix:(NSString *)suffix
+{
+    if ([suffix length])
+    {
+        NSString *extension = [self pathExtension];
+        NSString *path = [self SP_stringByDeletingPathExtension];
+        if ([path hasSuffix:suffix])
+        {
+            path = [path substringToIndex:[path length] - [suffix length]];
+            return [path SP_stringByAppendingPathExtension:extension];
+        }
+    }
+    return self;
+}
+
+- (BOOL)hasPathSuffix:(NSString *)suffix
+{
+    return [[self SP_stringByDeletingPathExtension] hasSuffix:suffix];
+}
+
+- (NSString *)stringByAppendingSuffixForInterfaceIdiom:(UIUserInterfaceIdiom)idiom
+{
+    NSString *suffix = @"";
+    switch (idiom)
+    {
+        case UIUserInterfaceIdiomPhone:
+        {
+            suffix = SPPhoneSuffix;
+            break;
+        }
+        case UIUserInterfaceIdiomPad:
+        {
+            suffix = SPPadSuffix;
+            break;
+        }
+        default:
+        {
+            suffix = SPDesktopSuffix;
+        }
+    }
+    return [self stringByAppendingPathSuffix:suffix];
 }
 
 - (NSString *)stringByAppendingInterfaceIdiomSuffix
@@ -393,38 +471,28 @@ static NSString *const SPTallscreenFileSuffix = @"-568h";
     NSString *suffix = @"";
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
     {
-        suffix = SPPhoneFileSuffix;
+        suffix = SPPhoneSuffix;
     }
     else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
     {
-        suffix = SPPadFileSuffix;
+        suffix = SPPadSuffix;
     }
     else
     {
-        suffix = SPDesktopFileSuffix;
+        suffix = SPDesktopSuffix;
     }
-    NSString *extension = [self pathExtension];
-    NSString *path = [[self SP_stringByDeletingPathExtension] stringByAppendingString:suffix];
-    return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
+    return [self stringByAppendingPathSuffix:suffix];
 }
 
 - (NSString *)stringByDeletingInterfaceIdiomSuffix
 {
-    NSString *suffix = [self interfaceIdiomSuffix];
-    if ([suffix length])
-    {
-        NSString *extension = [self pathExtension];
-        NSString *path = [self SP_stringByDeletingPathExtension];
-        path = [path substringToIndex:[path length] - [suffix length]];
-        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
-    }
-    return self;
+    return [self stringByDeletingPathSuffix:[self interfaceIdiomSuffix]];
 }
 
 - (NSString *)interfaceIdiomSuffix
 {
     NSString *path = [self SP_stringByDeletingPathExtension];
-    for (NSString *suffix in [NSArray arrayWithObjects:SPPhoneFileSuffix, SPPadFileSuffix, SPDesktopFileSuffix, nil])
+    for (NSString *suffix in [NSArray arrayWithObjects:SPPhoneSuffix, SPPadSuffix, SPDesktopSuffix, nil])
     {
         if ([path hasSuffix:suffix]) return suffix;
     }
@@ -434,29 +502,27 @@ static NSString *const SPTallscreenFileSuffix = @"-568h";
 - (UIUserInterfaceIdiom)interfaceIdiom
 {
     NSString *suffix = [self interfaceIdiomSuffix];
-    if ([suffix isEqualToString:SPPadFileSuffix])
+    if ([suffix isEqualToString:SPPadSuffix])
     {
         return UIUserInterfaceIdiomPad;
     }
-    else if ([suffix isEqualToString:SPPhoneFileSuffix])
+    else if ([suffix isEqualToString:SPPhoneSuffix])
     {
         return UIUserInterfaceIdiomPhone;
     }
     return UI_USER_INTERFACE_IDIOM();
 }
 
-- (NSString *)stringByAppendingScaleSuffix
+- (NSString *)stringByAppendingSuffixForScale:(CGFloat)scale
 {
-    if (SP_SCREEN_SCALE() > 1.0f)
-    {
-        NSString *extension = [self pathExtension];
-        NSString *idiomSuffix = [self interfaceIdiomSuffix];
-        NSString *scaleSuffix = [NSString stringWithFormat:@"@%ix", (int)SP_SCREEN_SCALE()];
-        NSString *path = [[self SP_stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix];
-        path = [path stringByAppendingFormat:@"%@%@", scaleSuffix, idiomSuffix];
-        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
-    }
-    return self;
+    NSString *suffix = [NSString stringWithFormat:@"@%.2gx%@", scale, [self interfaceIdiomSuffix]];
+    return [[self stringByDeletingInterfaceIdiomSuffix] stringByAppendingPathSuffix:suffix];
+}
+
+- (NSString *)stringByAppendingDeviceScaleSuffix
+{
+    CGFloat scale = SP_SCREEN_SCALE();
+    return (scale > 1.0f)? [self stringByAppendingSuffixForScale:scale]: self;
 }
 
 - (NSString *)stringByDeletingScaleSuffix
@@ -464,11 +530,10 @@ static NSString *const SPTallscreenFileSuffix = @"-568h";
     NSString *scaleSuffix = [self scaleSuffix];
     if ([scaleSuffix length])
     {
-        NSString *extension = [self pathExtension];
-        NSString *idiomSuffix = [self interfaceIdiomSuffix];
-        NSString *path = [[self SP_stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix];
-        path = [[path substringToIndex:[path length] - [scaleSuffix length]] stringByAppendingString:idiomSuffix];
-        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
+        NSString *suffix = [self interfaceIdiomSuffix];
+        return [[[self stringByDeletingPathSuffix:suffix]
+                 stringByDeletingPathSuffix:scaleSuffix]
+                stringByAppendingPathSuffix:suffix];
     }
     return self;
 }
@@ -490,113 +555,245 @@ static NSString *const SPTallscreenFileSuffix = @"-568h";
     return @"";
 }
 
-- (CGFloat)scale
+- (BOOL)hasRetinaSuffix
 {
-    NSString *scaleSuffix = [self scaleSuffix];
-    if ([scaleSuffix length])
-    {
-        return [[scaleSuffix substringWithRange:NSMakeRange(1, 1)] floatValue];
-    }
-    else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && [self isHD])
-    {
-        return 2.0f;
-    }
-    return 1.0f;
-}
-
-- (BOOL)isRetina
-{
-    return [self scale] == 2.0f;
+    return [[self scaleSuffix] isEqualToString:SPRetinaSuffix];
 }
 
 - (NSString *)stringByAppendingHDSuffix
 {
-    if (SP_SCREEN_SCALE() > 1.0f || UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPhone)
+    NSString *suffix = [NSString stringWithFormat:@"%@%@%@", SPHDSuffix, [self scaleSuffix], [self interfaceIdiomSuffix]];
+    return [[[self stringByDeletingInterfaceIdiomSuffix]
+             stringByDeletingScaleSuffix]
+            stringByAppendingPathSuffix:suffix];
+}
+
+- (NSString *)stringByAppendingHDSuffixIfDeviceIsHD
+{
+    if (SP_IS_HD())
     {
-        NSString *extension = [self pathExtension];
-        NSString *idiomSuffix = [self interfaceIdiomSuffix];
-        NSString *scaleSuffix = [self scaleSuffix];
-        NSString *path = [[[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix];
-        path = [path stringByAppendingFormat:@"%@%@%@", SPHDFileSuffix, scaleSuffix, idiomSuffix];
-        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
+        return [self stringByAppendingHDSuffix];
     }
     return self;
 }
 
 - (NSString *)stringByDeletingHDSuffix
 {
-    NSString *HDSuffix = [self HDSuffix];
-    if ([HDSuffix length])
+    if ([self hasHDSuffix])
     {
-        NSString *extension = [self pathExtension];
-        NSString *idiomSuffix = [self interfaceIdiomSuffix];
-        NSString *scaleSuffix = [self scaleSuffix];
-        NSString *path = [[[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix];
-        path = [path substringToIndex:[path length] - [HDSuffix length]];
-        path = [path stringByAppendingFormat:@"%@%@", scaleSuffix, idiomSuffix];
-        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
+        NSString *suffix = [NSString stringWithFormat:@"%@%@", [self scaleSuffix], [self interfaceIdiomSuffix]];
+        return [[[self stringByDeletingPathSuffix:suffix]
+                 stringByDeletingPathSuffix:SPHDSuffix]
+                stringByAppendingPathSuffix:suffix];
     }
     return self;
 }
 
-- (NSString *)HDSuffix
+- (BOOL)hasHDSuffix
 {
-    NSString *path = [[[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix];
-    if ([path hasSuffix:SPHDFileSuffix])
-    {
-        return SPHDFileSuffix;
-    }
-    return @"";
+    return [[[self stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix] hasPathSuffix:SPHDSuffix];
 }
 
-- (BOOL)isHD
+- (NSString *)stringByAppendingRetina4Suffix
 {
-    return [[self HDSuffix] length] > 0;
+    NSString *suffix = [NSString stringWithFormat:@"%@%@", [self scaleSuffix], [self interfaceIdiomSuffix]];
+    return [[self stringByDeletingPathSuffix:suffix]
+            stringByAppendingPathSuffix:[SPRetina4Suffix stringByAppendingString:suffix]];
 }
 
-- (NSString *)stringByAppendingTallscreenSuffix
+- (NSString *)stringByAppendingRetina4SuffixIfDeviceIsRetina4
 {
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && SP_SCREEN_HEIGHT() == 568.0f)
+    if (SP_IS_RETINA4())
     {
-        NSString *extension = [self pathExtension];
-        NSString *idiomSuffix = [self interfaceIdiomSuffix];
-        NSString *scaleSuffix = [self scaleSuffix];
-        NSString *path = [[[[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix] stringByDeletingHDSuffix];
-        path = [path stringByAppendingFormat:@"%@%@%@", SPTallscreenFileSuffix, scaleSuffix, idiomSuffix];
-        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
+        return [self stringByAppendingRetina4Suffix];
     }
     return self;
 }
 
-- (NSString *)stringByDeletingTallscreenSuffix
+- (NSString *)stringByDeletingRetina4Suffix
 {
-    NSString *tallscreenSuffix = [self tallscreenSuffix];
-    if ([tallscreenSuffix length])
+    if ([self hasRetina4Suffix])
     {
-        NSString *extension = [self pathExtension];
-        NSString *idiomSuffix = [self interfaceIdiomSuffix];
-        NSString *scaleSuffix = [self scaleSuffix];
-        NSString *path = [[[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix];
-        path = [path substringToIndex:[path length] - [tallscreenSuffix length]];
-        path = [path stringByAppendingFormat:@"%@%@", scaleSuffix, idiomSuffix];
-        return [extension length]? [path SP_stringByAppendingPathExtension:extension]: path;
+        NSString *suffix = [NSString stringWithFormat:@"%@%@", [self scaleSuffix], [self interfaceIdiomSuffix]];
+        return [[[self stringByDeletingPathSuffix:suffix]
+                 stringByDeletingPathSuffix:SPRetina4Suffix]
+                stringByAppendingPathSuffix:suffix];
     }
     return self;
 }
 
-- (NSString *)tallscreenSuffix
+- (BOOL)hasRetina4Suffix
 {
-    NSString *path = [[[self stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix];
-    if ([path hasSuffix:SPTallscreenFileSuffix])
-    {
-        return SPTallscreenFileSuffix;
-    }
-    return @"";
+    return [[[self stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix] hasPathSuffix:SPRetina4Suffix];
 }
 
-- (BOOL)isTallscreen
+- (CGFloat)scaleFromSuffix
 {
-    return [[self tallscreenSuffix] length] > 0;
+    NSString *scaleSuffix = [self scaleSuffix];
+    if ([scaleSuffix length])
+    {
+        return [[scaleSuffix substringWithRange:NSMakeRange(1, 1)] floatValue];
+    }
+    else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && [self hasHDSuffix])
+    {
+        return 2.0f;
+    }
+    return 1.0f;
 }
 
 @end
+
+
+#if SP_SWIZZLE
+#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
+
+
+@implementation UIImage (StandardPaths)
+
++ (void)load
+{
+    SP_swizzleClassMethod(self, @selector(imageWithContentsOfFile:), @selector(SP_imageWithContentsOfFile));
+    SP_swizzleClassMethod(self, @selector(imageNamed:), @selector(SP_imageNamed:));
+}
+
++ (NSCache *)SP_imageCache
+{
+    static NSCache *cache = nil;
+    if (cache == nil)
+    {
+        cache = [[NSCache alloc] init];
+    }
+    return cache;
+}
+
++ (UIImage *)SP_imageWithContentsOfFile:(NSString *)file
+{
+    NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:file];
+    if ([path hasHDSuffix])
+    {
+        file = [file stringByAppendingHDSuffix];
+        CGFloat scale = [path scaleFromSuffix];
+        if (![path hasRetinaSuffix] && scale > 1.0f)
+        {
+            //need to loading ourselves
+            NSData *data = [NSData dataWithContentsOfFile:file];
+            return [UIImage imageWithData:data scale:scale];
+        }
+    }
+    if ([path hasRetina4Suffix])
+    {
+        file = [file stringByAppendingRetina4Suffix];
+    }
+    return [self SP_imageWithContentsOfFile:file];
+}
+
++ (UIImage *)SP_imageNamed:(NSString *)name
+{
+    NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:name];
+    if ([path hasHDSuffix])
+    {
+        CGFloat scale = [path scaleFromSuffix];
+        if (![path hasRetinaSuffix] && scale > 1.0f)
+        {
+            //need to loading & caching ourselves
+            NSCache *cache = [self SP_imageCache];
+            UIImage *image = [cache objectForKey:name];
+            if (!image)
+            {
+                NSData *data = [NSData dataWithContentsOfFile:path];
+                image = [UIImage imageWithData:data scale:scale];
+                [cache setObject:image forKey:name];
+            }
+            return image;
+        }
+        name = [name stringByAppendingHDSuffix];
+    }
+    else if ([path hasRetina4Suffix])
+    {
+        name = [name stringByAppendingRetina4Suffix];
+    }
+    return [self SP_imageNamed:name];
+}
+
+@end
+
+
+@implementation NSBundle (StandardPaths)
+
++ (void)load
+{
+    SP_swizzleInstanceMethod(self, @selector(loadNibNamed:owner:options:), @selector(SP_loadNibNamed:owner:options:));
+}
+
+- (NSArray *)SP_loadNibNamed:(NSString *)name owner:(id)owner options:(NSDictionary *)options
+{
+    NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:name];
+    if ([path hasHDSuffix])
+    {
+        name = [name stringByAppendingHDSuffix];
+    }
+    else if ([path hasRetina4Suffix])
+    {
+        name = [name stringByAppendingRetina4Suffix];
+    }
+    return [self SP_loadNibNamed:name owner:owner options:options];
+}
+
+@end
+
+
+@implementation UINib (StandardPaths)
+
++ (void)load
+{
+    SP_swizzleClassMethod(self, @selector(nibWithNibName:bundle:), @selector(SP_nibWithNibName:bundle:));
+}
+
++ (UINib *)SP_nibWithNibName:(NSString *)name bundle:(NSBundle *)bundleOrNil
+{
+    NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:[name stringByAppendingPathExtension:@"nib"]];
+    if ([path hasHDSuffix])
+    {
+        name = [name stringByAppendingHDSuffix];
+    }
+    else if ([path hasRetina4Suffix])
+    {
+        name = [name stringByAppendingRetina4Suffix];
+    }
+    return [self SP_nibWithNibName:name bundle:bundleOrNil];
+}
+
+@end
+
+
+@implementation UIViewController (StandardPaths)
+
++ (void)load
+{
+    SP_swizzleInstanceMethod(self, @selector(loadView), @selector(SP_loadView));
+}
+
+- (void)SP_loadView
+{
+    NSString *name = self.nibName;
+    if ([name length])
+    {
+        NSString *path = [[[self.nibBundle resourcePath] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"nib"];
+        path = [[NSFileManager defaultManager] normalizedPathForFile:path];
+        if ([path hasRetina4Suffix])
+        {
+            name = [name stringByAppendingRetina4Suffix];
+        }
+        [self.nibBundle loadNibNamed:name owner:self options:nil];
+    }
+    else
+    {
+        [self SP_loadView];
+    }
+}
+
+@end
+
+
+#endif
+#endif

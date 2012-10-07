@@ -15,12 +15,8 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    //load the correct nib on iPhone 5 as Apple offers no built-in support
-    NSString *nibName = [@"ViewController" stringByAppendingTallscreenSuffix];
-    
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    self.viewController = [[ViewController alloc] initWithNibName:nibName bundle:nil];
-    self.window.rootViewController = self.viewController;
+    self.window.rootViewController = [[ViewController alloc] init];
     [self.window makeKeyAndVisible];
     return YES;
 }
