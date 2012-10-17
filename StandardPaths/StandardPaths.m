@@ -656,7 +656,7 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
 @end
 
 
-#if SP_SWIZZLE
+#if SP_SWIZZLE_ENABLED
 #ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
 
 
