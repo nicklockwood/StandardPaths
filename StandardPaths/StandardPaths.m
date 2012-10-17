@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.4
+//  Version 1.4.1
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -71,6 +71,15 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
     Method b = class_getClassMethod(c, replacement);
     method_exchangeImplementations(a, b);
 }
+
+
+@interface NSString (SP_Private)
+
+- (NSString *)SP_pathExtension;
+- (NSString *)SP_stringByAppendingPathExtension:(NSString *)extension;
+- (NSString *)SP_stringByDeletingPathExtension;
+
+@end
 
 
 @implementation NSFileManager (StandardPaths)
@@ -278,7 +287,7 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
             }
         }
         
-        NSArray *suffixes = [NSArray arrayWithObject:[[path pathExtension] length]? @"": @".png"];
+        NSArray *suffixes = [NSArray arrayWithObject:[[path SP_pathExtension] length]? @"": @".png"];
         if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
         {
             //check for Retina4 version
@@ -361,7 +370,7 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
         NSString *_path = nil;
         for (NSString *suffix in [suffixes reverseObjectEnumerator])
         {
-            if ([[suffix pathExtension] length])
+            if ([[suffix SP_pathExtension] length])
             {
                 _path = [[path stringByDeletingPathExtension] stringByAppendingString:suffix];
             }
@@ -392,6 +401,18 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
 
 @implementation NSString (StandardPaths)
 
+- (NSString *)SP_pathExtension
+{
+    NSString *extension = [self pathExtension];
+    if ([extension isEqualToString:@"gz"])
+    {
+        extension = [[self stringByDeletingPathExtension] pathExtension];
+        if ([extension length]) return [extension stringByAppendingPathExtension:@"gz"];
+        return @"gz";
+    }
+    return extension;
+}
+
 - (NSString *)SP_stringByAppendingPathExtension:(NSString *)extension
 {
     return [extension length]? [self stringByAppendingFormat:@".%@", extension]: self;
@@ -399,26 +420,17 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
 
 - (NSString *)SP_stringByDeletingPathExtension
 {
-    NSRange lastPathRange = [self rangeOfString:@"/" options:NSBackwardsSearch];
-    if (lastPathRange.location != NSNotFound)
+    NSString *extension = [self SP_pathExtension];
+    if ([extension length])
     {
-        lastPathRange = NSMakeRange(lastPathRange.location, [self length] - lastPathRange.location);
-    }
-    else
-    {
-        lastPathRange = NSMakeRange(0, [self length]);
-    }
-    NSRange range = [self rangeOfString:@"." options:NSBackwardsSearch range:lastPathRange];
-    if (range.location != NSNotFound)
-    {
-        return [self substringToIndex:range.location];
+        return [self substringToIndex:[self length] - [extension length] - 1];
     }
     return self;
 }
-    
+
 - (NSString *)stringByAppendingPathSuffix:(NSString *)suffix
 {
-    NSString *extension = [self pathExtension];
+    NSString *extension = [self SP_pathExtension];
     NSString *path = [[self SP_stringByDeletingPathExtension] stringByAppendingString:suffix];
     return [path SP_stringByAppendingPathExtension:extension];
 }
@@ -427,7 +439,7 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
 {
     if ([suffix length])
     {
-        NSString *extension = [self pathExtension];
+        NSString *extension = [self SP_pathExtension];
         NSString *path = [self SP_stringByDeletingPathExtension];
         if ([path hasSuffix:suffix])
         {

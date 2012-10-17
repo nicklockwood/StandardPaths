@@ -1,3 +1,7 @@
+Version 1.4.1
+
+- Added suffix logic for files that have a .foo.gz extension in order to improve compatibility with the GLView library.
+
 Version 1.4
 
 - Now includes swizzling of UIKit methods to add automatic support for -hd and -568h suffixes when loading images and nib files (this can be disabled with the SP_SWIZZLE_ENABLED preprocessor macro if desired).
