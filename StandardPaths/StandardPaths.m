@@ -1,15 +1,14 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.4.1
+//  Version 1.4.2
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
 //
 //  Distributed under the permissive zlib License
-//  Get the latest version from either of these locations:
+//  Get the latest version from here:
 //
-//  http://charcoaldesign.co.uk/source/cocoa#standardpaths
 //  https://github.com/nicklockwood/StandardPaths
 //
 //  This software is provided 'as-is', without any express or implied
@@ -35,6 +34,10 @@
 #import "StandardPaths.h"
 #import <objc/runtime.h> 
 #include <sys/xattr.h>
+
+
+//workaround for rdar://problem/11017158 crash is iOS5
+extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import));
 
 
 #ifndef __IPHONE_OS_VERSION_MAX_ALLOWED
@@ -552,16 +555,13 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
 
 - (NSString *)scaleSuffix
 {
-    //note: this isn't very robust as it only handles single-digit integer scales
-    //for the forseeable future though, it's unlikely that we'll have to worry about that
     NSString *path = [[self SP_stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix];
-    if ([path length] >= 3)
+    if ([path hasSuffix:@"x"])
     {
-        NSString *scaleSuffix = [path substringFromIndex:[path length] - 3];
-        if ([[scaleSuffix substringToIndex:1] isEqualToString:@"@"] &&
-            [[scaleSuffix substringFromIndex:2] isEqualToString:@"x"])
+        NSRange range = [path rangeOfString:@"@" options:NSBackwardsSearch];
+        if (range.location != NSNotFound)
         {
-            return scaleSuffix;
+            return [path substringFromIndex:range.location];
         }
     }
     return @"";
@@ -644,7 +644,7 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
     NSString *scaleSuffix = [self scaleSuffix];
     if ([scaleSuffix length])
     {
-        return [[scaleSuffix substringWithRange:NSMakeRange(1, 1)] floatValue];
+        return [[scaleSuffix substringWithRange:NSMakeRange(1, [scaleSuffix length] - 2)] floatValue];
     }
     else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && [self hasHDSuffix])
     {
@@ -687,7 +687,7 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
         CGFloat scale = [path scaleFromSuffix];
         if (![path hasRetinaSuffix] && scale > 1.0f)
         {
-            //need to loading ourselves
+            //need to handle loading ourselves
             NSData *data = [NSData dataWithContentsOfFile:file];
             return [UIImage imageWithData:data scale:scale];
         }
@@ -707,7 +707,7 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
         CGFloat scale = [path scaleFromSuffix];
         if (![path hasRetinaSuffix] && scale > 1.0f)
         {
-            //need to loading & caching ourselves
+            //need to handle loading & caching ourselves
             NSCache *cache = [self SP_imageCache];
             UIImage *image = [cache objectForKey:name];
             if (!image)

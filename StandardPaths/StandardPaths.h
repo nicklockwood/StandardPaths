@@ -1,15 +1,14 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.4.1
+//  Version 1.4.2
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
 //
 //  Distributed under the permissive zlib License
-//  Get the latest version from either of these locations:
+//  Get the latest version from here:
 //
-//  http://charcoaldesign.co.uk/source/cocoa#standardpaths
 //  https://github.com/nicklockwood/StandardPaths
 //
 //  This software is provided 'as-is', without any express or implied

@@ -11,7 +11,7 @@ StandardPaths provides a simple set of NSFileManager extension methods to access
 
 StandardPaths also provides NSString extension methods for manipulating file suffixes for Retina graphics, iPhone 5 and device idioms (phone/pad/desktop) to simplify loading device-specific resources.
 
-Finally, StandardPaths swizzles some of the methods in UIKit so that they gain additional intelligence when loading device-specific resources. This enables you to load the correct images and nib files for iPhone5 based on the file suffix instead of ugly runtime code checks of the display size. This swizzling can be disabled if you would prefer not to mess with the standard iOS behaviour.
+Finally, StandardPaths swizzles some of the methods in UIKit so that they gain additional intelligence when loading device-specific resources. This enables you to load the correct images and nib files for iPhone5 based on the file suffix instead of ugly runtime code checks of the display size. This swizzling can be disabled if you would prefer not to mess with the standard iOS behaviour (see below for details).
 
 
 Supported OS & SDK Versions
@@ -189,24 +189,28 @@ This method returns the image scale value for a file path as a floating point nu
 UIKit swizzling
 -----------------
 
-By default, StandardPaths swizzles some UIKit methods to make some of the pseudo-standards that it implements work more simply and automatically. If you don't want this behaviour then don't panic, you can disable it by adding the following precompiler macro to your build settings:
+By default, StandardPaths swizzles some UIKit methods to make some of the pseudo-standards that it implements work more simply and automatically. If you don't want this behaviour then don't panic, you can disable it by adding the following pre-compiler macro to your build settings:
 
 SP_SWIZZLE_ENABLED=0
 
-Befoe you do that though, be reassured that the swizzling that StandardPaths does is minimal and quite safe. It always calls the originally swizzled method and merely acts as a buffer to insert some additional intelligence beforehand. It doesn't break UIImage caching, or cause any other nasty side effects like some solutions out there.
+Or if you prefer, add this to your prefix.pch file:
+
+#define SP_SWIZZLE_ENABLED 0
+
+Before you do that though, be reassured that the swizzling that StandardPaths does is minimal and quite safe. It always calls the originally swizzled method and merely acts as a buffer to insert some additional intelligence beforehand. It doesn't break UIImage caching, or cause any other nasty side effects like some solutions out there.
 
 The swizzled methods are as follows:
 
     [UIImage imageWithContentsOfFile:];
     [UIImage imageNamed:];
     
-These methods are siwzzled to automatically support images with the -hd and -568h suffixes. See the Image file suffixes section for details.
+These methods are swizzled to automatically support images with the -hd and -568h suffixes. See the Image file suffixes section for details.
 
     [NSBundle loadNibNamed:owner:options:];
     [UINib nibWithNibName:bundle:];
     [UIViewController loadView];
     
-These methods are all swizzled for the same reason; to automatically load nib files that are suffixed with -568h on an iPhone 5, saving you from having to perform a check at runtime.
+These methods are all swizzled for the same reason: to automatically load nib files that are suffixed with -568h on an iPhone 5, saving you from having to perform a check at runtime.
 
 
 Image file suffixes
@@ -220,7 +224,7 @@ Naming your images with the @2x suffix works for the Retina iPhone but not the s
 
 The -hd suffix is a solution introduced by the Cocos2D library to the problem of wanting to use the same 2x graphics for both the iPhone Retina display and the iPad standard definition display by using the same -hd filename suffix for both.
 
-The -568h suffix was introduced with the iPhone 5 to support Default.png launch images which are 568 points high (1136px) intead of the regular 480 points. StandardPaths extends this convention so it can be used for all files. It is typically used for images, and because the iPhone 5 has a retina display it should be combined with the @2x scale suffix for images so that they are loaded at the correct scale. As with all the other suffixes though, StandardPaths also supports the use of this suffix with other file types such as nibs (the additional @2x part of the suffix is not used for non-image assets).
+The -568h suffix was introduced with the iPhone 5 to support Default.png launch images which are 568 points high (1136px) instead of the regular 480 points. StandardPaths extends this convention so it can be used for all files. It is typically used for images, and because the iPhone 5 has a retina display it should be combined with the @2x scale suffix for images so that they are loaded at the correct scale. As with all the other suffixes though, StandardPaths also supports the use of this suffix with other file types such as nibs (the additional @2x part of the suffix is not used for non-image assets).
 
 StandardPaths supports this solution by adding some utility methods to NSString for automatically applying this suffix to file paths when using the `normalizedFilePath:` method. Files using the @2x, ~ipad, -hd and -568h conventions (or any combination thereof) are automatically detected and loaded as appropriate. For example, If you pass in an image file called foo.png, StandardPaths will automatically look for foo@2x.png or foo-hd.png on a Retina iPhone, or foo~ipad.png or foo-hd.png on an iPad and will also find foo-hd@2x.png if you are using a Retina iPad. For cross-platform consistency, StandardPaths also extends these concepts to Mac OS by introducing a ~mac suffix, and treating Mac the same way as iPad with respect to the -hd suffix. It will also look for multi-page HiDPI TIFF file alternatives as appropriate.
 
@@ -248,7 +252,7 @@ Note that file lookups outside of the application bundle are not cached (as the 
 
 Unless you have disabled swizzling using the SP_SWIZZLE_ENABLED macro, StandardPaths will automatically handle loading of images and nib files with the -hd or -568h suffixes, so you don't need to do anything special to load these.
 
-If you have disabled swizzling, or you want to manipulate non-file-path strings such as infodictionary keys or nib file names, you can use the NSString extension methods. So for example if you wanted to get the device-specific name of a nib file on iPhone 5 you could use:
+If you have disabled swizzling, or you want to manipulate non-file-path strings such as info dictionary keys or nib file names, you can use the NSString extension methods. So for example if you wanted to get the device-specific name of a nib file on iPhone 5 you could use:
 
     NSString *infoDictionaryKey = [@"resourceName" stringByAppendingRetina4SuffixIfDeviceIsRetina4];
 

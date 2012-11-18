@@ -1,3 +1,8 @@
+Version 1.4.2
+
+- Added fix for rdar://problem/11017158
+- Now correctly handles non-integer path scale factors such as @1.5x
+
 Version 1.4.1
 
 - Added suffix logic for files that have a .foo.gz extension in order to improve compatibility with the GLView library.
@@ -5,12 +10,12 @@ Version 1.4.1
 Version 1.4
 
 - Now includes swizzling of UIKit methods to add automatic support for -hd and -568h suffixes when loading images and nib files (this can be disabled with the SP_SWIZZLE_ENABLED preprocessor macro if desired).
-- Updated API to include more string suffic manipulation methods and more sensible naming conventions for the existing methods. Note that some methods have slightly changed their behaviour.
+- Updated API to include more string suffix manipulation methods and more sensible naming conventions for the existing methods. Note that some methods have slightly changed their behaviour.
 - Fixed a small bug in the normalizedPathForFile: method when loading images on Retina Macs (wrong image was selected).
 
 Version 1.3
 
-- Added support for the iPhone 5 -568h@2x suffix for file paths. Apple currently provides no support for this in UIImage or when loading nib files, but StandardPaths can now detect these files automatically and generate the correct path automatically when needed.
+- Added support for the iPhone 5 -568h@2x suffix for file paths. Apple currently provides no support for this in UIImage or when loading nib files, but StandardPaths can now detect these files automatically and generate the correct path when needed.
 
 Version 1.2.2
 

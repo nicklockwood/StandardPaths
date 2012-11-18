@@ -1,6 +1,6 @@
 StandardPaths
 
-Version 1.4.1, October 17th 2012
+Version 1.4.2, November 17th 2012
 
 Copyright (C) 2011 Charcoal Design
 
