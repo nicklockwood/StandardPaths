@@ -11,7 +11,7 @@ StandardPaths provides a simple set of NSFileManager extension methods to access
 
 StandardPaths also provides NSString extension methods for manipulating file suffixes for Retina graphics, iPhone 5 and device idioms (phone/pad/desktop) to simplify loading device-specific resources.
 
-Finally, StandardPaths swizzles some of the methods in UIKit so that they gain additional intelligence when loading device-specific resources. This enables you to load the correct images and nib files for iPhone5 based on the file suffix instead of ugly runtime code checks of the display size. This swizzling can be disabled if you would prefer not to mess with the standard iOS behaviour (see below for details).
+Finally, StandardPaths swizzles some of the methods in UIKit and AppKit so that they gain additional intelligence when loading device-specific resources. This enables you to load the correct images and nib files for iPhone5 based on the file suffix instead of ugly runtime code checks of the display size. This swizzling can be disabled if you would prefer not to mess with the standard iOS behaviour (see below for details).
 
 
 Supported OS & SDK Versions
@@ -78,8 +78,9 @@ Returns the path for the temporary data folder. This is a good place to store te
 Returns the path for files in the application resources folder. This basically just maps to `[[NSBundle mainBundle] resourcePath]`. Files in this folder are read-only. Note that unlike the `[[NSBundle mainBundle] pathForResource:ofType:]` method, `pathForResource:` does not return nil if the file does not exist.
 
     - (NSString *)normalizedPathForFile:(NSString *)fileOrPath;
+    - (NSString *)normalizedPathForFile:(NSString *)fileOrPath ofType:(NSString *)ext;
 
-This method serves several functions:
+This method takes a file name or path and normalizes them by performing the following operations:
 
 1) It can take a path fragment or file name and convert it to a complete path by prefixing the application bundle resources path. Secondly, it replicates the behaviours of Mac OS and iOS when finding different versions of resource files such as @2x image files or files suffixed with ~ipad or ~iphone (and adds a ~mac extension option for cross-platform consistency).
 
@@ -91,11 +92,21 @@ This method serves several functions:
 
 These behaviours will work with any file, not just images or nibs, so it can be useful if you want to load device-specific versions of nib files, 3D models or shaders for OpenGL applications without writing a lot of branching code. Unlike the other NSFileManager extension methods, this method will return nil if the file does not exist. This method makes multiple filesystem calls, so may be relatively slow the first time it is called for each path, however it caches the result for a given input so the next time it will be faster. See the Image file suffixes section below for more information.
 
+The `ofType:` form of the method takes an optional file extension to use if the file does not already have an extension. Unlike the built-in `[[NSBundle mainBundle] pathForResource:ofType:]` method, the extension will be ignored if the file already has a type.
+
 
 NSString extension methods
 -----------------------------
 
 StandardPaths extends NSString with some additional methods for manipulating file paths by adding, deleting and retrieving the standard and pseudo-standard path extensions used for Retina-resolution images and device-specific resources. See the Image file suffixes section below for more information.
+
+    - (NSString *)stringByReplacingPathExtensionWithExtension:(NSString *)extension;
+    
+This method replaces a string path extension with the specified value.
+    
+    - (BOOL)hasPathExtension;
+    
+This method returns YES if the string has a path extension.
 
     - (NSString *)stringByAppendingPathSuffix:(NSString *)suffix;
     
@@ -125,17 +136,21 @@ This method removes the user interface idiom suffix from the string if present, 
     
 This method returns the user interface idiom suffix if found, or @"" if not.
 
-    - (UIUserInterfaceIdiom)interfaceIdiom;
+    - (BOOL)hasInterfaceIdiomSuffix;
+    
+This method returns YES if the string has an interface idiom suffix.
+
+    - (UIUserInterfaceIdiom)interfaceIdiomFromSuffix;
 
 This method returns the UIUserInterfaceIdiom value specified by a file's interface idiom suffix (if found). If no suffix is found it returns the current device idiom. UIUserInterfaceIdiom is part of UIKit, and isn't defined on Mac OS, so StandardPaths defines these constants if running on Mac OS, and adds an additional UIUserInterfaceIdiomDesktop constant to represent the Mac OS desktop idiom. This implementation is compatible with the one used by the Chameleon iOS-Mac conversion library, so you should be able to use both libraries together.
     
     - (NSString *)stringByAppendingSuffixForScale:(CGFloat)scale;
 
-This method appends a standard scale suffix to the string. So for example if the passed scale value is 2.0 then the method will append @2x to the string. The method correctly handles file extensions and device type suffixes, so the @2x will be inserted before the file extension or device type suffix if present. See the Image file suffixes section below for more information.
+This method appends a standard scale suffix to the string. So for example if the passed scale value is 2.0 then the method will append @2x to the string. The method correctly handles file extensions and device type suffixes, so the @2x will be inserted before the file extension or device type suffix if present. See the Image file suffixes section below for more information. Passing a value of 0.0 for the scale will use the current device scale.
     
-    - (NSString *)stringByAppendingScaleSuffix;
+    - (NSString *)stringByAppendingDeviceScaleSuffix;
     
-This method appends an @2x suffix to the string if the device has a Retina display or does nothing if it doesn't. The method correctly handles file extensions and device type suffixes, so the @2x will be inserted before the file extension or device type suffix if present. See the Image file suffixes section below for more information.
+This method appends the appropriate suffix to the string for the current device scale (at present that means an @2x suffix if the device has a Retina display, or nothing if it doesn't). The method correctly handles file extensions and device type suffixes, so the @2x will be inserted before the file extension or device type suffix if present. See the Image file suffixes section below for more information.
     
     - (NSString *)stringByDeletingScaleSuffix;
     
@@ -143,12 +158,28 @@ This method removes the @2x (or any other scale factor) suffix from a file path,
     
     - (NSString *)scaleSuffix;
     
-This method returns the @2x suffix if found, or @"" if not.
+This method returns the scale factor suffix if found, or an empty string if not.
 
+    - (BOOL)hasScaleSuffix;
+    
+Return YES if the string has an @xx scale suffix and NO if not.
+
+    - (NSString *)stringByAppendingRetinaSuffix;
+    
+This method will append an @2x suffix to the string path. It is equivalent to calling `stringByAppendingSuffixForScale:` with a scale of 2.0.
+    
+    - (NSString *)stringByAppendingRetinaSuffixIfDeviceIsRetina;
+    
+This method will append an @2x suffix to the string path if the device has a Retina display. It is equivalent to calling `stringByAppendingDeviceScaleSuffix`.
+    
+    - (NSString *)stringByDeletingRetinaSuffix;
+    
+This method will delete the @2x suffix from the string, or do nothing if that suffix is not present. Unlike the `stringByDeletingScaleSuffix` method, it will not remove other scale suffix values.
+    
     - (BOOL)hasRetinaSuffix;
 
 Return YES if the string has an @2x retina suffix and NO if not.
-    
+
     - (NSString *)stringByAppendingHDSuffix;
     
 This method appends the -hd suffix to the string to indicate a Retina iPhone or large-screen device such as an iPad or Mac. See the Image file suffixes section below for more information.
@@ -164,6 +195,10 @@ This method deletes the -hd suffix from the string if found, or does nothing if 
     - (BOOL)hasHDSuffix;
 
 This method returns YES if the string has an -hd suffix and NO if it doesn't.
+
+    - (CGFloat)scaleFromSuffix;
+    
+This method returns the image scale value for a file path as a floating point number, e.g. 2.0 if the file includes an -hd suffix (on iPhone only) or @2x suffix and 1.0 if there is no suffix doesn't. It will also correctly parse non-standard scale suffixes such as @1.5x, etc.
 
     - (NSString *)stringByAppendingRetina4Suffix;
 
@@ -181,34 +216,32 @@ This method deletes the -568h suffix from the string if found, or does nothing i
     
 This method returns YES if the string has a -568h suffix and NO if it doesn't.
 
-    - (CGFloat)scaleFromSuffix;
-    
-This method returns the image scale value for a file path as a floating point number, e.g. 2.0f if the file includes an -hd suffix (on iPhone only) or @2x suffix and 1.0f if it doesn't.
-
 
 UIKit swizzling
 -----------------
 
-By default, StandardPaths swizzles some UIKit methods to make some of the pseudo-standards that it implements work more simply and automatically. If you don't want this behaviour then don't panic, you can disable it by adding the following pre-compiler macro to your build settings:
+By default, StandardPaths swizzles some UIKit and AppKit methods to make some of the pseudo-standards that it implements work more simply and automatically. If you don't want this behaviour then don't panic, you can disable it by adding the following pre-compiler macro to your build settings:
 
-SP_SWIZZLE_ENABLED=0
+    SP_SWIZZLE_ENABLED=0
 
 Or if you prefer, add this to your prefix.pch file:
 
-#define SP_SWIZZLE_ENABLED 0
+    #define SP_SWIZZLE_ENABLED 0
 
 Before you do that though, be reassured that the swizzling that StandardPaths does is minimal and quite safe. It always calls the originally swizzled method and merely acts as a buffer to insert some additional intelligence beforehand. It doesn't break UIImage caching, or cause any other nasty side effects like some solutions out there.
 
 The swizzled methods are as follows:
 
-    [UIImage imageWithContentsOfFile:];
-    [UIImage imageNamed:];
+    [UIImage -initWithContentsOfFile:];
+    [UIImage +imageNamed:];
+    [NSImage -initWithContentsOfFile:];
+    [NSImage +imageNamed:];
     
 These methods are swizzled to automatically support images with the -hd and -568h suffixes. See the Image file suffixes section for details.
 
-    [NSBundle loadNibNamed:owner:options:];
-    [UINib nibWithNibName:bundle:];
-    [UIViewController loadView];
+    [NSBundle -loadNibNamed:owner:options:];
+    [UINib -nibWithNibName:bundle:];
+    [UIViewController -loadView];
     
 These methods are all swizzled for the same reason: to automatically load nib files that are suffixed with -568h on an iPhone 5, saving you from having to perform a check at runtime.
 

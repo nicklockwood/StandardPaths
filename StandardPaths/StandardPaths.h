@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.4.2
+//  Version 1.5
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -54,6 +54,10 @@ typedef enum
 }
 UIUserInterfaceIdiom;
 
+#elif defined(__IPHONE_OS_VERSION_MAX_ALLOWED)
+
+#define UIUserInterfaceIdiomDesktop (UIUserInterfaceIdiomPad + 1)
+
 #endif
 
 
@@ -82,11 +86,15 @@ static NSString *const SPRetina4Suffix = @"-568h";
 - (NSString *)pathForResource:(NSString *)file;
 
 - (NSString *)normalizedPathForFile:(NSString *)fileOrPath;
+- (NSString *)normalizedPathForFile:(NSString *)fileOrPath ofType:(NSString *)extension;
 
 @end
 
 
 @interface NSString (StandardPaths)
+
+- (NSString *)stringByReplacingPathExtensionWithExtension:(NSString *)extension;
+- (BOOL)hasPathExtension;
 
 - (NSString *)stringByAppendingPathSuffix:(NSString *)suffix;
 - (NSString *)stringByDeletingPathSuffix:(NSString *)suffix;
@@ -96,12 +104,19 @@ static NSString *const SPRetina4Suffix = @"-568h";
 - (NSString *)stringByAppendingInterfaceIdiomSuffix;
 - (NSString *)stringByDeletingInterfaceIdiomSuffix;
 - (NSString *)interfaceIdiomSuffix;
-- (UIUserInterfaceIdiom)interfaceIdiom;
+- (BOOL)hasInterfaceIdiomSuffix;
+
+- (UIUserInterfaceIdiom)interfaceIdiomFromSuffix;
 
 - (NSString *)stringByAppendingSuffixForScale:(CGFloat)scale;
 - (NSString *)stringByAppendingDeviceScaleSuffix;
 - (NSString *)stringByDeletingScaleSuffix;
 - (NSString *)scaleSuffix;
+- (BOOL)hasScaleSuffix;
+
+- (NSString *)stringByAppendingRetinaSuffix;
+- (NSString *)stringByAppendingRetinaSuffixIfDeviceIsRetina;
+- (NSString *)stringByDeletingRetinaSuffix;
 - (BOOL)hasRetinaSuffix;
 
 - (NSString *)stringByAppendingHDSuffix;
@@ -109,11 +124,11 @@ static NSString *const SPRetina4Suffix = @"-568h";
 - (NSString *)stringByDeletingHDSuffix;
 - (BOOL)hasHDSuffix;
 
+- (CGFloat)scaleFromSuffix;
+
 - (NSString *)stringByAppendingRetina4Suffix;
 - (NSString *)stringByAppendingRetina4SuffixIfDeviceIsRetina4;
 - (NSString *)stringByDeletingRetina4Suffix;
 - (BOOL)hasRetina4Suffix;
-
-- (CGFloat)scaleFromSuffix;
 
 @end

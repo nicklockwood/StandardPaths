@@ -25,12 +25,12 @@
     //the correct scale factor
     
     //load image 1
-    NSString *path1 = [[NSFileManager defaultManager] normalizedPathForFile:@"image1.png"];
+    NSString *path1 = [[NSFileManager defaultManager] normalizedPathForFile:@"Image1.png"];
     NSData *data1 = [NSData dataWithContentsOfFile:path1];
     self.imageView1.image = [UIImage imageWithData:data1 scale:[path1 scaleFromSuffix]];
 
     //load image 2
-    NSString *path2 = [[NSFileManager defaultManager] normalizedPathForFile:@"image2.png"];
+    NSString *path2 = [[NSFileManager defaultManager] normalizedPathForFile:@"Image2.png"];
     NSData *data2 = [NSData dataWithContentsOfFile:path2];
     self.imageView2.image = [UIImage imageWithData:data2 scale:[path2 scaleFromSuffix]];
 }

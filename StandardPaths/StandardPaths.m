@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.4.2
+//  Version 1.4.3
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -52,28 +52,6 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 #define SP_SCREEN_SCALE() ([UIScreen mainScreen].scale)
 #endif
 #define SP_IS_RETINA() (SP_SCREEN_SCALE() == 2.0f)
-
-
-static void SP_swizzleInstanceMethod(Class c, SEL original, SEL replacement)
-{
-    Method a = class_getInstanceMethod(c, original);
-    Method b = class_getInstanceMethod(c, replacement);
-    if (class_addMethod(c, original, method_getImplementation(b), method_getTypeEncoding(b)))
-    {
-        class_replaceMethod(c, replacement, method_getImplementation(a), method_getTypeEncoding(a));
-    }
-    else
-    {
-        method_exchangeImplementations(a, b);
-    }
-}
-
-static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
-{
-    Method a = class_getClassMethod(c, original);
-    Method b = class_getClassMethod(c, replacement);
-    method_exchangeImplementations(a, b);
-}
 
 
 @interface NSString (SP_Private)
@@ -184,7 +162,7 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
         {
             //use iOS 5.1 method to exclude file from backup
             NSURL *URL = [NSURL fileURLWithPath:path isDirectory:YES];
-            [URL setResourceValue:[NSNumber numberWithBool:YES] forKey:NSURLIsExcludedFromBackupKey error:NULL];
+            [URL setResourceValue:@YES forKey:NSURLIsExcludedFromBackupKey error:NULL];
         }
         else   
         {
@@ -262,6 +240,11 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
 
 - (NSString *)normalizedPathForFile:(NSString *)fileOrPath
 {
+    return [self normalizedPathForFile:fileOrPath ofType:@"png"];
+}
+
+- (NSString *)normalizedPathForFile:(NSString *)fileOrPath ofType:(NSString *)extension
+{
     @synchronized ([NSFileManager class])
     {
         //set up cache
@@ -271,16 +254,22 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
             cache = [[NSCache alloc] init];
         }
         
-        //convert to absolute path
+        //normalize extension
         NSString *path = fileOrPath;
+        if (![[path SP_pathExtension] length] && [extension length])
+        {
+            path = [path SP_stringByAppendingPathExtension:extension];
+        }
+        
+        //convert to absolute path
         if (![path isAbsolutePath])
         {
-            path = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:path];
+            path = [[NSFileManager defaultManager] pathForResource:path];
         }
         
         //check cache
         NSString *cacheKey = path;
-        BOOL cachable = [path hasPrefix:[[NSBundle mainBundle] resourcePath]];
+        BOOL cachable = [path hasPrefix:[[NSFileManager defaultManager] resourcePath]];
         if (cachable)
         {
             NSString *_path = [cache objectForKey:cacheKey];
@@ -290,102 +279,109 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
             }
         }
         
-        NSArray *suffixes = [NSArray arrayWithObject:[[path SP_pathExtension] length]? @"": @".png"];
-        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
+        //generate all possible paths
+        NSArray *paths = @[path];
+        switch (UI_USER_INTERFACE_IDIOM())
         {
-            //check for Retina4 version
-            if (SP_IS_RETINA4())
+            case UIUserInterfaceIdiomPhone:
             {
-                suffixes = [suffixes arrayByAddingObject:SPRetina4Suffix];
-            }
-            
-            //check for Retina
-            if (SP_IS_RETINA())
-            {
-                for (NSString *suffix in [suffixes objectEnumerator])
+                //check for Retina4 version
+                if (SP_IS_RETINA4())
                 {
-                    suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPHDSuffix]];
-                    suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPRetinaSuffix]];
+                    for (NSString *path in [paths objectEnumerator])
+                    {
+                        paths = [paths arrayByAddingObject:[path stringByAppendingRetina4Suffix]];
+                    }
                 }
-            }
-
-            //add iPhone suffixes
-            for (NSString *suffix in [suffixes objectEnumerator])
-            {
-                suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPPhoneSuffix]];
-            }
-        }
-        else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
-        {
-            //add HD suffix
-            suffixes = [suffixes arrayByAddingObject:SPHDSuffix];
-            
-            //check for Retina
-            if (SP_IS_RETINA())
-            {
-                for (NSString *suffix in [suffixes objectEnumerator])
-                {
-                    suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPRetinaSuffix]];
-                }
-            }
-            
-            //add iPad suffixes
-            for (NSString *suffix in [suffixes objectEnumerator])
-            {
-                suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPPadSuffix]];
-            }
-        }
-        else //mac
-        {
-            //add HD suffix
-            suffixes = [suffixes arrayByAddingObject:SPHDSuffix];
-            
-            //check for HiDPI tiff file
-            for (NSString *suffix in [suffixes objectEnumerator])
-            {
-                NSString *_path = [[[path stringByAppendingPathSuffix:suffix]
-                                    stringByDeletingPathExtension]
-                                   stringByAppendingPathExtension:@"tiff"];
                 
-                if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
+                //check for Retina
+                if (SP_IS_RETINA())
                 {
-                    suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingString:@".tiff"]];
+                    for (NSString *path in [paths objectEnumerator])
+                    {
+                        paths = [paths arrayByAddingObject:[path stringByAppendingHDSuffix]];
+                        paths = [paths arrayByAddingObject:[path stringByAppendingRetinaSuffix]];
+                    }
                 }
-            }
-  
-            //check for Retina
-            if (SP_IS_RETINA())
-            {
-                for (NSString *suffix in [suffixes objectEnumerator])
+                
+                //add iPhone suffixes
+                for (NSString *path in [paths objectEnumerator])
                 {
-                    suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPRetinaSuffix]];
+                    paths = [paths arrayByAddingObject:[path stringByAppendingPathSuffix:SPPhoneSuffix]];
                 }
+                
+                break;
             }
-            
-            //add Mac suffixes
-            for (NSString *suffix in [suffixes objectEnumerator])
+            case UIUserInterfaceIdiomPad:
             {
-                suffixes = [suffixes arrayByAddingObject:[suffix stringByAppendingPathSuffix:SPDesktopSuffix]];
+                //add HD suffix
+                for (NSString *path in [paths objectEnumerator])
+                {
+                    paths = [paths arrayByAddingObject:[path stringByAppendingHDSuffix]];
+                }
+                
+                //check for Retina
+                if (SP_IS_RETINA())
+                {
+                    for (NSString *path in [paths objectEnumerator])
+                    {
+                        paths = [paths arrayByAddingObject:[path stringByAppendingRetinaSuffix]];
+                    }
+                }
+                
+                //add iPad suffixes
+                for (NSString *path in [paths objectEnumerator])
+                {
+                    paths = [paths arrayByAddingObject:[path stringByAppendingPathSuffix:SPPadSuffix]];
+                }
+                
+                break;
+            }
+            case UIUserInterfaceIdiomDesktop:
+            {
+                //add HiDPI tiff extension
+                if ([@[@"", @"png", @"jpg", @"jpeg"] containsObject:[extension lowercaseString]])
+                {
+                    for (NSString *path in [paths objectEnumerator])
+                    {
+                        paths = [paths arrayByAddingObject:[path stringByReplacingPathExtensionWithExtension:@"tiff"]];
+                    }
+                }
+                
+                //add HD suffix
+                for (NSString *path in [paths objectEnumerator])
+                {
+                    paths = [paths arrayByAddingObject:[path stringByAppendingHDSuffix]];
+                }
+                
+                //check for Retina
+                if (SP_IS_RETINA())
+                {
+                    for (NSString *path in [paths objectEnumerator])
+                    {
+                        paths = [paths arrayByAddingObject:[path stringByAppendingRetinaSuffix]];
+                    }
+                }
+                
+                //add Mac suffixes
+                for (NSString *path in [paths objectEnumerator])
+                {
+                    paths = [paths arrayByAddingObject:[path stringByAppendingPathSuffix:SPDesktopSuffix]];
+                }
+                
+                break;
             }
         }
         
-        //try all suffixes
+        //try all paths
         NSString *_path = nil;
-        for (NSString *suffix in [suffixes reverseObjectEnumerator])
+        for (NSString *path in [paths reverseObjectEnumerator])
         {
-            if ([[suffix SP_pathExtension] length])
+            if ([[NSFileManager defaultManager] fileExistsAtPath:path])
             {
-                _path = [[path stringByDeletingPathExtension] stringByAppendingString:suffix];
-            }
-            else
-            {
-                _path = [path stringByAppendingPathSuffix:suffix];
-            }
-            if ([[NSFileManager defaultManager] fileExistsAtPath:_path])
-            {
+                _path = path;
                 break;
             }
-            _path = nil;
         }
         
         //add to cache
@@ -429,6 +425,16 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
         return [self substringToIndex:[self length] - [extension length] - 1];
     }
     return self;
+}
+
+- (NSString *)stringByReplacingPathExtensionWithExtension:(NSString *)extension
+{
+    return [[self SP_stringByDeletingPathExtension] SP_stringByAppendingPathExtension:extension];
+}
+
+- (BOOL)hasPathExtension
+{
+    return [[self SP_pathExtension] length] != 0;
 }
 
 - (NSString *)stringByAppendingPathSuffix:(NSString *)suffix
@@ -507,14 +513,19 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
 - (NSString *)interfaceIdiomSuffix
 {
     NSString *path = [self SP_stringByDeletingPathExtension];
-    for (NSString *suffix in [NSArray arrayWithObjects:SPPhoneSuffix, SPPadSuffix, SPDesktopSuffix, nil])
+    for (NSString *suffix in @[SPPhoneSuffix, SPPadSuffix, SPDesktopSuffix])
     {
         if ([path hasSuffix:suffix]) return suffix;
     }
     return @"";
 }
 
-- (UIUserInterfaceIdiom)interfaceIdiom
+- (BOOL)hasInterfaceIdiomSuffix
+{
+    return [[self interfaceIdiomSuffix] length] != 0;
+}
+
+- (UIUserInterfaceIdiom)interfaceIdiomFromSuffix
 {
     NSString *suffix = [self interfaceIdiomSuffix];
     if ([suffix isEqualToString:SPPadSuffix])
@@ -525,19 +536,23 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
     {
         return UIUserInterfaceIdiomPhone;
     }
+    else if ([suffix isEqualToString:SPDesktopSuffix])
+    {
+        return UIUserInterfaceIdiomDesktop;
+    }
     return UI_USER_INTERFACE_IDIOM();
 }
 
 - (NSString *)stringByAppendingSuffixForScale:(CGFloat)scale
 {
+    scale = scale ?: SP_SCREEN_SCALE();
     NSString *suffix = [NSString stringWithFormat:@"@%.2gx%@", scale, [self interfaceIdiomSuffix]];
     return [[self stringByDeletingInterfaceIdiomSuffix] stringByAppendingPathSuffix:suffix];
 }
 
 - (NSString *)stringByAppendingDeviceScaleSuffix
 {
-    CGFloat scale = SP_SCREEN_SCALE();
-    return (scale > 1.0f)? [self stringByAppendingSuffixForScale:scale]: self;
+    return [self stringByAppendingSuffixForScale:0];
 }
 
 - (NSString *)stringByDeletingScaleSuffix
@@ -565,6 +580,37 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
         }
     }
     return @"";
+}
+
+- (BOOL)hasScaleSuffix
+{
+    return [[self scaleSuffix] length] != 0;
+}
+
+- (NSString *)stringByAppendingRetinaSuffix
+{
+    return [self stringByAppendingSuffixForScale:2.0f];
+}
+
+- (NSString *)stringByAppendingRetinaSuffixIfDeviceIsRetina
+{
+    if (SP_IS_RETINA())
+    {
+        return [self stringByAppendingRetinaSuffix];
+    }
+    return self;
+}
+
+- (NSString *)stringByDeletingRetinaSuffix
+{
+    if ([self hasRetinaSuffix])
+    {
+        NSString *suffix = [self interfaceIdiomSuffix];
+        return [[[self stringByDeletingPathSuffix:suffix]
+                 stringByDeletingPathSuffix:SPRetinaSuffix]
+                stringByAppendingPathSuffix:suffix];
+    }
+    return self;
 }
 
 - (BOOL)hasRetinaSuffix
@@ -606,6 +652,20 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
     return [[[self stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix] hasPathSuffix:SPHDSuffix];
 }
 
+- (CGFloat)scaleFromSuffix
+{
+    NSString *scaleSuffix = [self scaleSuffix];
+    if ([scaleSuffix length])
+    {
+        return [[scaleSuffix substringWithRange:NSMakeRange(1, [scaleSuffix length] - 2)] floatValue];
+    }
+    else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && [self hasHDSuffix])
+    {
+        return 2.0f;
+    }
+    return 1.0f;
+}
+
 - (NSString *)stringByAppendingRetina4Suffix
 {
     NSString *suffix = [NSString stringWithFormat:@"%@%@", [self scaleSuffix], [self interfaceIdiomSuffix]];
@@ -639,36 +699,38 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
     return [[[self stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix] hasPathSuffix:SPRetina4Suffix];
 }
 
-- (CGFloat)scaleFromSuffix
-{
-    NSString *scaleSuffix = [self scaleSuffix];
-    if ([scaleSuffix length])
-    {
-        return [[scaleSuffix substringWithRange:NSMakeRange(1, [scaleSuffix length] - 2)] floatValue];
-    }
-    else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && [self hasHDSuffix])
-    {
-        return 2.0f;
-    }
-    return 1.0f;
-}
-
 @end
 
 
 #if SP_SWIZZLE_ENABLED
+
+
+static void SP_swizzleInstanceMethod(Class c, SEL original, SEL replacement)
+{
+    Method a = class_getInstanceMethod(c, original);
+    Method b = class_getInstanceMethod(c, replacement);
+    if (class_addMethod(c, original, method_getImplementation(b), method_getTypeEncoding(b)))
+    {
+        class_replaceMethod(c, replacement, method_getImplementation(a), method_getTypeEncoding(a));
+    }
+    else
+    {
+        method_exchangeImplementations(a, b);
+    }
+}
+
+static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
+{
+    Method a = class_getClassMethod(c, original);
+    Method b = class_getClassMethod(c, replacement);
+    method_exchangeImplementations(a, b);
+}
+
+
 #ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
 
 
-@implementation UIImage (StandardPaths)
-
-+ (void)load
-{
-    SP_swizzleClassMethod(self, @selector(imageWithContentsOfFile:), @selector(SP_imageWithContentsOfFile));
-    SP_swizzleClassMethod(self, @selector(imageNamed:), @selector(SP_imageNamed:));
-}
-
-+ (NSCache *)SP_imageCache
+NSCache *SP_imageCache(void)
 {
     static NSCache *cache = nil;
     if (cache == nil)
@@ -678,7 +740,16 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
     return cache;
 }
 
-+ (UIImage *)SP_imageWithContentsOfFile:(NSString *)file
+
+@implementation UIImage (StandardPaths)
+
++ (void)load
+{
+    SP_swizzleInstanceMethod(self, @selector(initWithContentsOfFile:), @selector(SP_initWithContentsOfFile));
+    SP_swizzleClassMethod(self, @selector(imageNamed:), @selector(SP_imageNamed:));
+}
+
+- (UIImage *)SP_initWithContentsOfFile:(NSString *)file
 {
     NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:file];
     if ([path hasHDSuffix])
@@ -689,14 +760,14 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
         {
             //need to handle loading ourselves
             NSData *data = [NSData dataWithContentsOfFile:file];
-            return [UIImage imageWithData:data scale:scale];
+            return [self initWithData:data scale:scale];
         }
     }
     if ([path hasRetina4Suffix])
     {
         file = [file stringByAppendingRetina4Suffix];
     }
-    return [self SP_imageWithContentsOfFile:file];
+    return [self SP_initWithContentsOfFile:file];
 }
 
 + (UIImage *)SP_imageNamed:(NSString *)name
@@ -708,13 +779,12 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
         if (![path hasRetinaSuffix] && scale > 1.0f)
         {
             //need to handle loading & caching ourselves
-            NSCache *cache = [self SP_imageCache];
+            NSCache *cache = SP_imageCache();
             UIImage *image = [cache objectForKey:name];
             if (!image)
             {
-                NSData *data = [NSData dataWithContentsOfFile:path];
-                image = [UIImage imageWithData:data scale:scale];
-                [cache setObject:image forKey:name];
+                image = [UIImage imageWithContentsOfFile:path];
+                if (image) [cache setObject:image forKey:name];
             }
             return image;
         }
@@ -807,5 +877,40 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
 @end
 
 
+#else
+
+
+@implementation NSImage (StandardPaths)
+
++ (void)load
+{
+    SP_swizzleInstanceMethod(self, @selector(initWithContentsOfFile:), @selector(SP_initWithContentsOfFile:));
+    SP_swizzleClassMethod(self, @selector(imageNamed:), @selector(SP_imageNamed:));
+}
+
+- (id)SP_initWithContentsOfFile:(NSString *)file
+{
+    NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:file];
+    NSImage *image = [self SP_initWithContentsOfFile:path];
+    CGFloat scale = [path scaleFromSuffix];
+    image.size = NSMakeSize(image.size.width / scale, image.size.height / scale);
+    return image;
+}
+
++ (NSImage *)SP_imageNamed:(NSString *)name
+{
+    NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:name];
+    if (path)
+    {
+        NSString *originalPath = [[NSFileManager defaultManager] pathForResource:name];
+        name = [path substringFromIndex:[originalPath length] - [name length]];
+    }
+    return [self SP_imageNamed:name];
+}
+
+@end
+
+
 #endif
+
 #endif

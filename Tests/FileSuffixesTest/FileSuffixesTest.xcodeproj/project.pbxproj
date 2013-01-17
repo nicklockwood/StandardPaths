@@ -7,16 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0152EE9D16A822DB00E3BB8E /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B2C2AB8B16026DA1008A07DE /* Default-568h@2x.png */; };
+		0152EE9E16A822DB00E3BB8E /* Image1-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B25CB7B51602286600D7D145 /* Image1-568h@2x.png */; };
+		0152EE9F16A822DF00E3BB8E /* Image1~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895141582B32400023C5C /* Image1~ipad.png */; };
+		0152EEA016A822DF00E3BB8E /* Image1@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895131582B32400023C5C /* Image1@2x~ipad.png */; };
 		019894F21582B2E100023C5C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 019894F11582B2E100023C5C /* UIKit.framework */; };
 		019894F41582B2E100023C5C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 019894F31582B2E100023C5C /* Foundation.framework */; };
 		019894F61582B2E100023C5C /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 019894F51582B2E100023C5C /* CoreGraphics.framework */; };
-		019895181582B32400023C5C /* image1.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895111582B32400023C5C /* image1.png */; };
-		019895191582B32400023C5C /* image1@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895121582B32400023C5C /* image1@2x.png */; };
+		019895181582B32400023C5C /* Image1.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895111582B32400023C5C /* Image1.png */; };
+		019895191582B32400023C5C /* Image1@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895121582B32400023C5C /* Image1@2x.png */; };
 		0198951A1582B32400023C5C /* Image1@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895131582B32400023C5C /* Image1@2x~ipad.png */; };
 		0198951B1582B32400023C5C /* Image1~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895141582B32400023C5C /* Image1~ipad.png */; };
 		0198951C1582B32400023C5C /* Image2-hd.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895151582B32400023C5C /* Image2-hd.png */; };
 		0198951D1582B32400023C5C /* Image2-hd@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895161582B32400023C5C /* Image2-hd@2x.png */; };
-		0198951E1582B32400023C5C /* image2.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895171582B32400023C5C /* image2.png */; };
+		0198951E1582B32400023C5C /* Image2.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895171582B32400023C5C /* Image2.png */; };
 		019895261582B37B00023C5C /* StandardPaths.m in Sources */ = {isa = PBXBuildFile; fileRef = 019895251582B37B00023C5C /* StandardPaths.m */; };
 		01C5B56615835B5C001607BC /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 01C5B55B15835B5C001607BC /* AppDelegate.m */; };
 		01C5B56715835B5C001607BC /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 01C5B55C15835B5C001607BC /* InfoPlist.strings */; };
@@ -36,11 +40,9 @@
 		01C5B5B0158364A6001607BC /* Image2-hd@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895161582B32400023C5C /* Image2-hd@2x.png */; };
 		01C5B5B3158365CC001607BC /* Image1~mac.png in Resources */ = {isa = PBXBuildFile; fileRef = 01C5B5B2158365CC001607BC /* Image1~mac.png */; };
 		01C5B5B715836A87001607BC /* Image1@2x~mac.png in Resources */ = {isa = PBXBuildFile; fileRef = 01C5B5B515836A87001607BC /* Image1@2x~mac.png */; };
-		01C5B5BB158370DB001607BC /* image1.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895111582B32400023C5C /* image1.png */; };
-		01C5B5BC158370DB001607BC /* image1@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895121582B32400023C5C /* image1@2x.png */; };
-		01C5B5BD158370DB001607BC /* Image1@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895131582B32400023C5C /* Image1@2x~ipad.png */; };
-		01C5B5BE158370DB001607BC /* Image1~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895141582B32400023C5C /* Image1~ipad.png */; };
-		01C5B5BF158370DB001607BC /* image2.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895171582B32400023C5C /* image2.png */; };
+		01C5B5BB158370DB001607BC /* Image1.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895111582B32400023C5C /* Image1.png */; };
+		01C5B5BC158370DB001607BC /* Image1@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895121582B32400023C5C /* Image1@2x.png */; };
+		01C5B5BF158370DB001607BC /* Image2.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895171582B32400023C5C /* Image2.png */; };
 		01C5B5C01583714C001607BC /* Image1~mac.png in Resources */ = {isa = PBXBuildFile; fileRef = 01C5B5B2158365CC001607BC /* Image1~mac.png */; };
 		01C5B5C11583714C001607BC /* Image1@2x~mac.png in Resources */ = {isa = PBXBuildFile; fileRef = 01C5B5B515836A87001607BC /* Image1@2x~mac.png */; };
 		B25CB7B31602270F00D7D145 /* ViewController-568h.xib in Resources */ = {isa = PBXBuildFile; fileRef = B25CB7B21602270F00D7D145 /* ViewController-568h.xib */; };
@@ -53,13 +55,13 @@
 		019894F11582B2E100023C5C /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		019894F31582B2E100023C5C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		019894F51582B2E100023C5C /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		019895111582B32400023C5C /* image1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = image1.png; sourceTree = "<group>"; };
-		019895121582B32400023C5C /* image1@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "image1@2x.png"; sourceTree = "<group>"; };
+		019895111582B32400023C5C /* Image1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Image1.png; sourceTree = "<group>"; };
+		019895121582B32400023C5C /* Image1@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image1@2x.png"; sourceTree = "<group>"; };
 		019895131582B32400023C5C /* Image1@2x~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image1@2x~ipad.png"; sourceTree = "<group>"; };
 		019895141582B32400023C5C /* Image1~ipad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image1~ipad.png"; sourceTree = "<group>"; };
 		019895151582B32400023C5C /* Image2-hd.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image2-hd.png"; sourceTree = "<group>"; };
 		019895161582B32400023C5C /* Image2-hd@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image2-hd@2x.png"; sourceTree = "<group>"; };
-		019895171582B32400023C5C /* image2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = image2.png; sourceTree = "<group>"; };
+		019895171582B32400023C5C /* Image2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Image2.png; sourceTree = "<group>"; };
 		019895241582B37B00023C5C /* StandardPaths.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StandardPaths.h; sourceTree = "<group>"; };
 		019895251582B37B00023C5C /* StandardPaths.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = StandardPaths.m; sourceTree = "<group>"; };
 		01C5B55A15835B5C001607BC /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -244,10 +246,10 @@
 			isa = PBXGroup;
 			children = (
 				B2C2AB8B16026DA1008A07DE /* Default-568h@2x.png */,
-				019895111582B32400023C5C /* image1.png */,
-				019895121582B32400023C5C /* image1@2x.png */,
+				019895111582B32400023C5C /* Image1.png */,
+				019895121582B32400023C5C /* Image1@2x.png */,
 				B25CB7B51602286600D7D145 /* Image1-568h@2x.png */,
-				019895171582B32400023C5C /* image2.png */,
+				019895171582B32400023C5C /* Image2.png */,
 			);
 			name = iPhone;
 			sourceTree = "<group>";
@@ -339,13 +341,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				019895181582B32400023C5C /* image1.png in Resources */,
-				019895191582B32400023C5C /* image1@2x.png in Resources */,
+				019895181582B32400023C5C /* Image1.png in Resources */,
+				019895191582B32400023C5C /* Image1@2x.png in Resources */,
 				0198951A1582B32400023C5C /* Image1@2x~ipad.png in Resources */,
 				0198951B1582B32400023C5C /* Image1~ipad.png in Resources */,
 				0198951C1582B32400023C5C /* Image2-hd.png in Resources */,
 				0198951D1582B32400023C5C /* Image2-hd@2x.png in Resources */,
-				0198951E1582B32400023C5C /* image2.png in Resources */,
+				0198951E1582B32400023C5C /* Image2.png in Resources */,
 				01C5B56715835B5C001607BC /* InfoPlist.strings in Resources */,
 				01C5B56C15835B5C001607BC /* ViewController.xib in Resources */,
 				01C5B56D15835B5C001607BC /* ViewController~ipad.xib in Resources */,
@@ -368,11 +370,13 @@
 				01C5B5B0158364A6001607BC /* Image2-hd@2x.png in Resources */,
 				01C5B5B3158365CC001607BC /* Image1~mac.png in Resources */,
 				01C5B5B715836A87001607BC /* Image1@2x~mac.png in Resources */,
-				01C5B5BB158370DB001607BC /* image1.png in Resources */,
-				01C5B5BC158370DB001607BC /* image1@2x.png in Resources */,
-				01C5B5BD158370DB001607BC /* Image1@2x~ipad.png in Resources */,
-				01C5B5BE158370DB001607BC /* Image1~ipad.png in Resources */,
-				01C5B5BF158370DB001607BC /* image2.png in Resources */,
+				01C5B5BB158370DB001607BC /* Image1.png in Resources */,
+				01C5B5BC158370DB001607BC /* Image1@2x.png in Resources */,
+				01C5B5BF158370DB001607BC /* Image2.png in Resources */,
+				0152EE9D16A822DB00E3BB8E /* Default-568h@2x.png in Resources */,
+				0152EE9E16A822DB00E3BB8E /* Image1-568h@2x.png in Resources */,
+				0152EE9F16A822DF00E3BB8E /* Image1~ipad.png in Resources */,
+				0152EEA016A822DF00E3BB8E /* Image1@2x~ipad.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -528,7 +532,7 @@
 				GCC_PREFIX_HEADER = "MacClasses/FileSuffixesTestMac-Prefix.pch";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				INFOPLIST_FILE = "MacClasses/FileSuffixesTestMac-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.6.8;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -551,7 +555,7 @@
 				GCC_PREFIX_HEADER = "MacClasses/FileSuffixesTestMac-Prefix.pch";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				INFOPLIST_FILE = "MacClasses/FileSuffixesTestMac-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.6.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				WRAPPER_EXTENSION = app;

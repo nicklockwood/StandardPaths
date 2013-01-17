@@ -1,3 +1,10 @@
+Version 1.5
+
+- Fixed some bugs in the normalizedPathForFile: method when extension is omitted
+- Added normalizedPathForFile:ofType: method for convenience
+- Now swizzles the image loading methods on Mac OS as well as iOS
+- Added additional path manipulation methods
+
 Version 1.4.2
 
 - Added fix for rdar://problem/11017158
