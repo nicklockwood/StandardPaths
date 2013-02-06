@@ -867,7 +867,7 @@ NSCache *SP_imageCache(void)
     {
         NSString *path = [[[self.nibBundle resourcePath] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"nib"];
         path = [[NSFileManager defaultManager] normalizedPathForFile:path];
-        if ([path hasRetina4Suffix])
+        if ([path hasRetina4Suffix] && ![name hasRetina4Suffix])
         {
             name = [name stringByAppendingRetina4Suffix];
         }
