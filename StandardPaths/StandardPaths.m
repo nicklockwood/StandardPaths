@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.4.3
+//  Version 1.5.1
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -247,6 +247,11 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 {
     @synchronized ([NSFileManager class])
     {
+        if ([fileOrPath rangeOfString:@"-568h"].location != NSNotFound)
+        {
+            NSLog(@"");
+        }
+        
         //set up cache
         static NSCache *cache = nil;
         if (cache == nil)
@@ -729,7 +734,7 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
 
 #ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
 
-
+NSCache *SP_imageCache(void);
 NSCache *SP_imageCache(void)
 {
     static NSCache *cache = nil;
@@ -763,7 +768,7 @@ NSCache *SP_imageCache(void)
             return [self initWithData:data scale:scale];
         }
     }
-    if ([path hasRetina4Suffix])
+    if ([path hasRetina4Suffix] && ![file hasRetina4Suffix])
     {
         file = [file stringByAppendingRetina4Suffix];
     }
@@ -790,7 +795,7 @@ NSCache *SP_imageCache(void)
         }
         name = [name stringByAppendingHDSuffix];
     }
-    else if ([path hasRetina4Suffix])
+    else if ([path hasRetina4Suffix] && ![name hasRetina4Suffix])
     {
         name = [name stringByAppendingRetina4Suffix];
     }
@@ -814,7 +819,7 @@ NSCache *SP_imageCache(void)
     {
         name = [name stringByAppendingHDSuffix];
     }
-    else if ([path hasRetina4Suffix])
+    else if ([path hasRetina4Suffix] && ![name hasRetina4Suffix])
     {
         name = [name stringByAppendingRetina4Suffix];
     }
@@ -838,7 +843,7 @@ NSCache *SP_imageCache(void)
     {
         name = [name stringByAppendingHDSuffix];
     }
-    else if ([path hasRetina4Suffix])
+    else if ([path hasRetina4Suffix] && ![name hasRetina4Suffix])
     {
         name = [name stringByAppendingRetina4Suffix];
     }
