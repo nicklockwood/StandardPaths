@@ -1,9 +1,9 @@
 Purpose
 -------------
 
-iOS and the Mac App Store place quite strict conditions on where files should be stored, but it's not always clear where the right place is. As of iOS 5 and iOS 5.0.1 it's even more complex because of the need to ensure that certain files aren't backed up to iCloud or aren't wiped out when the device gets full.
+iOS and the Mac App Store place quite strict conditions on where files should be stored, but it's not always clear where the right place is. As of iOS 5.0 it's even more complex because of the need to ensure that certain files aren't backed up to iCloud or aren't wiped out when the device gets full.
 
-Also, since the advent of Retina displays and hybrid apps, it is often quite complex to identify the correct file path for resources such as images or nib files because on different devices they may have different suffixes such as @2x or ~ipad, and whilst many iOS and Mac OS APIs manage these suffixes automatically, they do so in an inconsistent and opaque way.
+Also, since the advent of Retina displays and hybrid apps, it is often hard to identify the correct file path for resources such as images or nib files because on different devices they may have different suffixes such as @2x or ~ipad, and whilst many iOS and Mac OS APIs manage these suffixes automatically, they do so in an inconsistent and opaque way.
 
 Support for the -568h file suffix for targeting the iPhone 5 screen is also frustratingly limited to only the launch image, and is not generally supported for loading images, nib files, etc.
 
@@ -11,13 +11,13 @@ StandardPaths provides a simple set of NSFileManager extension methods to access
 
 StandardPaths also provides NSString extension methods for manipulating file suffixes for Retina graphics, iPhone 5 and device idioms (phone/pad/desktop) to simplify loading device-specific resources.
 
-Finally, StandardPaths swizzles some of the methods in UIKit and AppKit so that they gain additional intelligence when loading device-specific resources. This enables you to load the correct images and nib files for iPhone5 based on the file suffix instead of ugly runtime code checks of the display size. This swizzling can be disabled if you would prefer not to mess with the standard iOS behaviour (see below for details).
+Finally, StandardPaths swizzles some of the methods in UIKit and AppKit so that they gain additional intelligence when loading device-specific resources. This enables you to load the correct images and nib files for iPhone5 based on the file suffix instead of ugly runtime code checks of the display size. This swizzling can be disabled if you would prefer not to mess with the standard behaviour (see below for details).
 
 
 Supported OS & SDK Versions
 -----------------------------
 
-* Supported build target - iOS 6.0 / Mac OS 10.8 (Xcode 4.5)
+* Supported build target - iOS 6.1 / Mac OS 10.8 (Xcode 4.6, Apple LLVM compiler 4.2)
 * Earliest supported deployment target - iOS 5.0 / Mac OS 10.7
 * Earliest compatible deployment target - iOS 4.3 / Mac OS 10.6
 

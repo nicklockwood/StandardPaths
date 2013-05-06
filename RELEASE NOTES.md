@@ -1,3 +1,8 @@
+Version 1.5.2
+
+- Fixed swizzling crash when using storyboards
+- Added Podspec file
+
 Version 1.5.1
 
 - Fixed bug in UIImage swizzling where attempting to load an image name or path that already includes the -568h suffix would fail

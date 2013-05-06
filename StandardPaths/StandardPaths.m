@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.5.1
+//  Version 1.5.2
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -865,18 +865,20 @@ NSCache *SP_imageCache(void)
     NSString *name = self.nibName;
     if ([name length])
     {
+        NSFileManager *fileManager = [NSFileManager defaultManager];
         NSString *path = [[[self.nibBundle resourcePath] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"nib"];
-        path = [[NSFileManager defaultManager] normalizedPathForFile:path];
+        path = [fileManager normalizedPathForFile:path];
         if ([path hasRetina4Suffix] && ![name hasRetina4Suffix])
         {
             name = [name stringByAppendingRetina4Suffix];
         }
-        [self.nibBundle loadNibNamed:name owner:self options:nil];
+        if ([fileManager fileExistsAtPath:path])
+        {
+            [self.nibBundle loadNibNamed:name owner:self options:nil];
+            return;
+        }
     }
-    else
-    {
-        [self SP_loadView];
-    }
+    [self SP_loadView];
 }
 
 @end
@@ -904,10 +906,11 @@ NSCache *SP_imageCache(void)
 
 + (NSImage *)SP_imageNamed:(NSString *)name
 {
-    NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:name];
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *path = [fileManager normalizedPathForFile:name];
     if (path)
     {
-        NSString *originalPath = [[NSFileManager defaultManager] pathForResource:name];
+        NSString *originalPath = [fileManager pathForResource:name];
         name = [path substringFromIndex:[originalPath length] - [name length]];
     }
     return [self SP_imageNamed:name];
