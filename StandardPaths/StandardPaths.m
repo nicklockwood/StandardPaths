@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.5.2
+//  Version 1.5.3
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -32,7 +32,7 @@
 
 
 #import "StandardPaths.h"
-#import <objc/runtime.h> 
+#import <objc/runtime.h>
 #include <sys/xattr.h>
 
 
@@ -164,13 +164,13 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
             NSURL *URL = [NSURL fileURLWithPath:path isDirectory:YES];
             [URL setResourceValue:@YES forKey:NSURLIsExcludedFromBackupKey error:NULL];
         }
-        else   
+        else
         {
             //use the iOS 5.0.1 mobile backup flag to exclude file from backp
             u_int8_t b = 1;
             setxattr([path fileSystemRepresentation], "com.apple.MobileBackup", &b, 1, 0, 0);
         }
-
+        
         //retain path
         path = [[NSString alloc] initWithString:path];
     }
@@ -750,7 +750,7 @@ NSCache *SP_imageCache(void)
 
 + (void)load
 {
-    SP_swizzleInstanceMethod(self, @selector(initWithContentsOfFile:), @selector(SP_initWithContentsOfFile));
+    SP_swizzleInstanceMethod(self, @selector(initWithContentsOfFile:), @selector(SP_initWithContentsOfFile:));
     SP_swizzleClassMethod(self, @selector(imageNamed:), @selector(SP_imageNamed:));
 }
 
@@ -765,7 +765,9 @@ NSCache *SP_imageCache(void)
         {
             //need to handle loading ourselves
             NSData *data = [NSData dataWithContentsOfFile:file];
-            return [self initWithData:data scale:scale];
+            UIImage *image = [self initWithData:data];
+            [image setValue:@(scale) forKey:@"scale"];
+            return image;
         }
     }
     if ([path hasRetina4Suffix] && ![file hasRetina4Suffix])
@@ -788,7 +790,9 @@ NSCache *SP_imageCache(void)
             UIImage *image = [cache objectForKey:name];
             if (!image)
             {
-                image = [UIImage imageWithContentsOfFile:path];
+                NSData *data = [NSData dataWithContentsOfFile:path];
+                image = [UIImage imageWithData:data];
+                [image setValue:@(scale) forKey:@"scale"];
                 if (image) [cache setObject:image forKey:name];
             }
             return image;

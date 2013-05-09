@@ -1,3 +1,7 @@
+Version 1.5.3
+
+- Fixed bug in swizzled initWithImage: method that meant it was never called
+
 Version 1.5.2
 
 - Fixed swizzling crash when using storyboards
