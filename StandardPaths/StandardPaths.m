@@ -293,26 +293,26 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                 //check for Retina4 version
                 if (SP_IS_RETINA4())
                 {
-                    for (NSString *path in [paths objectEnumerator])
+                    for (NSString *path_l in [paths objectEnumerator])
                     {
-                        paths = [paths arrayByAddingObject:[path stringByAppendingRetina4Suffix]];
+                        paths = [paths arrayByAddingObject:[path_l stringByAppendingRetina4Suffix]];
                     }
                 }
                 
                 //check for Retina
                 if (SP_IS_RETINA())
                 {
-                    for (NSString *path in [paths objectEnumerator])
+                    for (NSString *path_l in [paths objectEnumerator])
                     {
-                        paths = [paths arrayByAddingObject:[path stringByAppendingHDSuffix]];
-                        paths = [paths arrayByAddingObject:[path stringByAppendingRetinaSuffix]];
+                        paths = [paths arrayByAddingObject:[path_l stringByAppendingHDSuffix]];
+                        paths = [paths arrayByAddingObject:[path_l stringByAppendingRetinaSuffix]];
                     }
                 }
                 
                 //add iPhone suffixes
-                for (NSString *path in [paths objectEnumerator])
+                for (NSString *path_l in [paths objectEnumerator])
                 {
-                    paths = [paths arrayByAddingObject:[path stringByAppendingPathSuffix:SPPhoneSuffix]];
+                    paths = [paths arrayByAddingObject:[path_l stringByAppendingPathSuffix:SPPhoneSuffix]];
                 }
                 
                 break;
@@ -320,24 +320,24 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
             case UIUserInterfaceIdiomPad:
             {
                 //add HD suffix
-                for (NSString *path in [paths objectEnumerator])
+                for (NSString *path_l in [paths objectEnumerator])
                 {
-                    paths = [paths arrayByAddingObject:[path stringByAppendingHDSuffix]];
+                    paths = [paths arrayByAddingObject:[path_l stringByAppendingHDSuffix]];
                 }
                 
                 //check for Retina
                 if (SP_IS_RETINA())
                 {
-                    for (NSString *path in [paths objectEnumerator])
+                    for (NSString *path_l in [paths objectEnumerator])
                     {
-                        paths = [paths arrayByAddingObject:[path stringByAppendingRetinaSuffix]];
+                        paths = [paths arrayByAddingObject:[path_l stringByAppendingRetinaSuffix]];
                     }
                 }
                 
                 //add iPad suffixes
-                for (NSString *path in [paths objectEnumerator])
+                for (NSString *path_l in [paths objectEnumerator])
                 {
-                    paths = [paths arrayByAddingObject:[path stringByAppendingPathSuffix:SPPadSuffix]];
+                    paths = [paths arrayByAddingObject:[path_l stringByAppendingPathSuffix:SPPadSuffix]];
                 }
                 
                 break;
@@ -347,31 +347,31 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                 //add HiDPI tiff extension
                 if ([@[@"", @"png", @"jpg", @"jpeg"] containsObject:[extension lowercaseString]])
                 {
-                    for (NSString *path in [paths objectEnumerator])
+                    for (NSString *path_l in [paths objectEnumerator])
                     {
-                        paths = [paths arrayByAddingObject:[path stringByReplacingPathExtensionWithExtension:@"tiff"]];
+                        paths = [paths arrayByAddingObject:[path_l stringByReplacingPathExtensionWithExtension:@"tiff"]];
                     }
                 }
                 
                 //add HD suffix
-                for (NSString *path in [paths objectEnumerator])
+                for (NSString *path_l in [paths objectEnumerator])
                 {
-                    paths = [paths arrayByAddingObject:[path stringByAppendingHDSuffix]];
+                    paths = [paths arrayByAddingObject:[path_l stringByAppendingHDSuffix]];
                 }
                 
                 //check for Retina
                 if (SP_IS_RETINA())
                 {
-                    for (NSString *path in [paths objectEnumerator])
+                    for (NSString *path_l in [paths objectEnumerator])
                     {
-                        paths = [paths arrayByAddingObject:[path stringByAppendingRetinaSuffix]];
+                        paths = [paths arrayByAddingObject:[path_l stringByAppendingRetinaSuffix]];
                     }
                 }
                 
                 //add Mac suffixes
-                for (NSString *path in [paths objectEnumerator])
+                for (NSString *path_l in [paths objectEnumerator])
                 {
-                    paths = [paths arrayByAddingObject:[path stringByAppendingPathSuffix:SPDesktopSuffix]];
+                    paths = [paths arrayByAddingObject:[path_l stringByAppendingPathSuffix:SPDesktopSuffix]];
                 }
                 
                 break;
@@ -380,11 +380,11 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         
         //try all paths
         NSString *_path = nil;
-        for (NSString *path in [paths reverseObjectEnumerator])
+        for (NSString *path_l in [paths reverseObjectEnumerator])
         {
-            if ([[NSFileManager defaultManager] fileExistsAtPath:path])
+            if ([[NSFileManager defaultManager] fileExistsAtPath:path_l])
             {
-                _path = path;
+                _path = path_l;
                 break;
             }
         }
