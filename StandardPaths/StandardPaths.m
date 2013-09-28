@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.5.3
+//  Version 1.5.4
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -36,7 +36,7 @@
 #include <sys/xattr.h>
 
 
-//workaround for rdar://problem/11017158 crash is iOS5
+//workaround for rdar://problem/11017158 crash in iOS5
 extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import));
 
 
@@ -247,11 +247,6 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 {
     @synchronized ([NSFileManager class])
     {
-        if ([fileOrPath rangeOfString:@"-568h"].location != NSNotFound)
-        {
-            NSLog(@"");
-        }
-        
         //set up cache
         static NSCache *cache = nil;
         if (cache == nil)

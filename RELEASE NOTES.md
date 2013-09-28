@@ -1,3 +1,7 @@
+Version 1.5.4
+
+- Removed some debug code accidentally left in library
+
 Version 1.5.3
 
 - Fixed bug in swizzled initWithImage: method that meant it was never called
