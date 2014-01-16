@@ -1,3 +1,7 @@
+Version 1.5.5
+
+- Now conforms to -Weverything warning level
+
 Version 1.5.4
 
 - Removed some debug code accidentally left in library

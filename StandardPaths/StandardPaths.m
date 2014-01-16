@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.5.4
+//  Version 1.5.5
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -36,17 +36,19 @@
 #include <sys/xattr.h>
 
 
+#pragma GCC diagnostic ignored "-Wgnu"
+#pragma GCC diagnostic ignored "-Wselector"
+
+
 //workaround for rdar://problem/11017158 crash in iOS5
 extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import));
 
 
 #ifndef __IPHONE_OS_VERSION_MAX_ALLOWED
-#define SP_IS_MACOS() 1
 #define SP_IS_HD() 1
 #define SP_IS_RETINA4() 0
 #define SP_SCREEN_SCALE() ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)]? [[NSScreen mainScreen] backingScaleFactor]: 1.0f)
 #else
-#define SP_IS_MACOS() 0
 #define SP_IS_HD() (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPhone || SP_SCREEN_SCALE() > 1.0f)
 #define SP_IS_RETINA4() ([UIScreen mainScreen].bounds.size.height == 568.0f)
 #define SP_SCREEN_SCALE() ([UIScreen mainScreen].scale)
@@ -255,32 +257,31 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         }
         
         //normalize extension
-        NSString *path = fileOrPath;
-        if (![[path SP_pathExtension] length] && [extension length])
+        if (![[fileOrPath SP_pathExtension] length] && [extension length])
         {
-            path = [path SP_stringByAppendingPathExtension:extension];
+            fileOrPath = [fileOrPath SP_stringByAppendingPathExtension:extension];
         }
         
         //convert to absolute path
-        if (![path isAbsolutePath])
+        if (![fileOrPath isAbsolutePath])
         {
-            path = [[NSFileManager defaultManager] pathForResource:path];
+            fileOrPath = [[NSFileManager defaultManager] pathForResource:fileOrPath];
         }
         
         //check cache
-        NSString *cacheKey = path;
-        BOOL cachable = [path hasPrefix:[[NSFileManager defaultManager] resourcePath]];
+        NSString *cacheKey = fileOrPath;
+        BOOL cachable = [fileOrPath hasPrefix:[[NSFileManager defaultManager] resourcePath]];
         if (cachable)
         {
-            NSString *_path = [cache objectForKey:cacheKey];
-            if (_path)
+            NSString *path = [cache objectForKey:cacheKey];
+            if (path)
             {
-                return [_path length]? _path: nil;
+                return [path length]? path: nil;
             }
         }
         
         //generate all possible paths
-        NSArray *paths = @[path];
+        NSArray *paths = @[fileOrPath];
         switch (UI_USER_INTERFACE_IDIOM())
         {
             case UIUserInterfaceIdiomPhone:
@@ -374,12 +375,12 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         }
         
         //try all paths
-        NSString *_path = nil;
+        NSString *finalPath = nil;
         for (NSString *path in [paths reverseObjectEnumerator])
         {
             if ([[NSFileManager defaultManager] fileExistsAtPath:path])
             {
-                _path = path;
+                finalPath = path;
                 break;
             }
         }
@@ -387,11 +388,11 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         //add to cache
         if (cachable)
         {
-            [cache setObject:_path ?: @"" forKey:cacheKey];
+            [cache setObject:finalPath ?: @"" forKey:cacheKey];
         }
         
         //return path
-        return _path;
+        return finalPath;
     }
 }
 
@@ -466,7 +467,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)stringByAppendingSuffixForInterfaceIdiom:(UIUserInterfaceIdiom)idiom
 {
-    NSString *suffix = @"";
+    NSString *suffix = SPDesktopSuffix;
     switch (idiom)
     {
         case UIUserInterfaceIdiomPhone:
@@ -479,10 +480,17 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
             suffix = SPPadSuffix;
             break;
         }
-        default:
+            
+#ifndef __IPHONE_OS_VERSION_MAX_ALLOWED
+            
+        case (UIUserInterfaceIdiom)UIUserInterfaceIdiomDesktop:
         {
             suffix = SPDesktopSuffix;
+            break;
         }
+            
+#endif
+            
     }
     return [self stringByAppendingPathSuffix:suffix];
 }
@@ -538,7 +546,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
     }
     else if ([suffix isEqualToString:SPDesktopSuffix])
     {
-        return UIUserInterfaceIdiomDesktop;
+        return (UIUserInterfaceIdiom)UIUserInterfaceIdiomDesktop;
     }
     return UI_USER_INTERFACE_IDIOM();
 }
