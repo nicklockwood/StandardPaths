@@ -1,3 +1,7 @@
+Version 1.5.6
+
+- Now loads Retina images on non-Retina devices if no non-Retina image is supplied
+
 Version 1.5.5
 
 - Now conforms to -Weverything warning level

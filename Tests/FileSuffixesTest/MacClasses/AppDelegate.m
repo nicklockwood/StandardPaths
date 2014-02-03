@@ -10,10 +10,7 @@
 
 @implementation AppDelegate
 
-@synthesize window;
-@synthesize windowController;
-
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+- (void)applicationDidFinishLaunching:(__unused NSNotification *)aNotification
 {
     // Insert code here to initialize your application
 }

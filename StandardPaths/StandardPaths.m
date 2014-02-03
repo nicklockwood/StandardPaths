@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.5.5
+//  Version 1.5.6
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -44,15 +44,20 @@
 extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import));
 
 
-#ifndef __IPHONE_OS_VERSION_MAX_ALLOWED
-#define SP_IS_HD() 1
-#define SP_IS_RETINA4() 0
-#define SP_SCREEN_SCALE() ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)]? [[NSScreen mainScreen] backingScaleFactor]: 1.0f)
-#else
+#if TARGET_OS_IPHONE
+
 #define SP_IS_HD() (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPhone || SP_SCREEN_SCALE() > 1.0f)
 #define SP_IS_RETINA4() ([UIScreen mainScreen].bounds.size.height == 568.0f)
 #define SP_SCREEN_SCALE() ([UIScreen mainScreen].scale)
+
+#else 
+
+#define SP_IS_HD() 1
+#define SP_IS_RETINA4() 0
+#define SP_SCREEN_SCALE() ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)]? [[NSScreen mainScreen] backingScaleFactor]: 1.0f)
+
 #endif
+
 #define SP_IS_RETINA() (SP_SCREEN_SCALE() == 2.0f)
 
 
@@ -94,7 +99,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
             //application support folder
             path = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) lastObject];
             
-#ifndef __IPHONE_OS_VERSION_MAX_ALLOWED
+#if !TARGET_OS_IPHONE
             
             //append application name on Mac OS
             NSString *identifier = [[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleNameKey];
@@ -125,7 +130,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
             //cache folder
             path = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
             
-#ifndef __IPHONE_OS_VERSION_MAX_ALLOWED
+#if !TARGET_OS_IPHONE
             
             //append application bundle ID on Mac OS
             NSString *identifier = [[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleIdentifierKey];
@@ -254,6 +259,13 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         if (cache == nil)
         {
             cache = [[NSCache alloc] init];
+            
+#if TARGET_OS_IPHONE
+            
+            [[NSNotificationCenter defaultCenter] addObserver:cache selector:@selector(removeAllObjects) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
+            
+#endif
+            
         }
         
         //normalize extension
@@ -282,6 +294,14 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         
         //generate all possible paths
         NSArray *paths = @[fileOrPath];
+        
+        //check for Retina
+        if (!SP_IS_RETINA())
+        {
+            //insert Retina version before non-Retina
+            paths = @[[fileOrPath stringByAppendingRetinaSuffix], fileOrPath];
+        }
+        
         switch (UI_USER_INTERFACE_IDIOM())
         {
             case UIUserInterfaceIdiomPhone:
@@ -343,10 +363,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                 //add HiDPI tiff extension
                 if ([@[@"", @"png", @"jpg", @"jpeg"] containsObject:[extension lowercaseString]])
                 {
-                    for (NSString *path in [paths objectEnumerator])
-                    {
-                        paths = [paths arrayByAddingObject:[path stringByReplacingPathExtensionWithExtension:@"tiff"]];
-                    }
+                    paths = [paths arrayByAddingObject:[fileOrPath stringByReplacingPathExtensionWithExtension:@"tiff"]];
                 }
                 
                 //add HD suffix
@@ -481,7 +498,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
             break;
         }
             
-#ifndef __IPHONE_OS_VERSION_MAX_ALLOWED
+#if !TARGET_OS_IPHONE
             
         case (UIUserInterfaceIdiom)UIUserInterfaceIdiomDesktop:
         {
@@ -735,7 +752,7 @@ static void SP_swizzleClassMethod(Class c, SEL original, SEL replacement)
 }
 
 
-#ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
+#if TARGET_OS_IPHONE
 
 NSCache *SP_imageCache(void);
 NSCache *SP_imageCache(void)
@@ -744,6 +761,8 @@ NSCache *SP_imageCache(void)
     if (cache == nil)
     {
         cache = [[NSCache alloc] init];
+
+        [[NSNotificationCenter defaultCenter] addObserver:cache selector:@selector(removeAllObjects) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
     }
     return cache;
 }
@@ -821,7 +840,7 @@ NSCache *SP_imageCache(void)
 
 - (NSArray *)SP_loadNibNamed:(NSString *)name owner:(id)owner options:(NSDictionary *)options
 {
-    NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:name];
+    NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:name ofType:@"nib"];
     if ([path hasHDSuffix])
     {
         name = [name stringByAppendingHDSuffix];
@@ -845,7 +864,7 @@ NSCache *SP_imageCache(void)
 
 + (UINib *)SP_nibWithNibName:(NSString *)name bundle:(NSBundle *)bundleOrNil
 {
-    NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:[name stringByAppendingPathExtension:@"nib"]];
+    NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:name ofType:@"nib"];
     if ([path hasHDSuffix])
     {
         name = [name stringByAppendingHDSuffix];
@@ -873,8 +892,8 @@ NSCache *SP_imageCache(void)
     if ([name length])
     {
         NSFileManager *fileManager = [NSFileManager defaultManager];
-        NSString *path = [[[self.nibBundle resourcePath] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"nib"];
-        path = [fileManager normalizedPathForFile:path];
+        NSString *path = [[self.nibBundle resourcePath] stringByAppendingPathComponent:name];
+        path = [fileManager normalizedPathForFile:path ofType:@"nib"];
         if ([path hasRetina4Suffix] && ![name hasRetina4Suffix])
         {
             name = [name stringByAppendingRetina4Suffix];
