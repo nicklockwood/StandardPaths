@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.5.6
+//  Version 1.6
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -46,19 +46,20 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 #if TARGET_OS_IPHONE
 
-#define SP_IS_HD() (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPhone || SP_SCREEN_SCALE() > 1.0f)
-#define SP_IS_RETINA4() ([UIScreen mainScreen].bounds.size.height == 568.0f)
+#define SP_IS_HD() (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPhone || SP_SCREEN_SCALE() > 1.0)
 #define SP_SCREEN_SCALE() ([UIScreen mainScreen].scale)
+#define SP_SCREEN_HEIGHT() ([UIScreen mainScreen].bounds.size.height)
 
 #else 
 
 #define SP_IS_HD() 1
-#define SP_IS_RETINA4() 0
-#define SP_SCREEN_SCALE() ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)]? [[NSScreen mainScreen] backingScaleFactor]: 1.0f)
+#define SP_SCREEN_SCALE() ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)]? [[NSScreen mainScreen] backingScaleFactor]: 1.0)
+#define SP_SCREEN_HEIGHT() ([NSScreen mainScreen].frame.size.height)
 
 #endif
 
-#define SP_IS_RETINA() (SP_SCREEN_SCALE() == 2.0f)
+#define SP_IS_RETINA() (SP_SCREEN_SCALE() > 1.0)
+#define SP_IS_RETINA4() (SP_SCREEN_HEIGHT() >= 568)
 
 
 @interface NSString (SP_Private)
@@ -294,25 +295,29 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         
         //generate all possible paths
         NSArray *paths = @[fileOrPath];
-        
+      
         //check for Retina
         if (!SP_IS_RETINA())
         {
-            //insert Retina version before non-Retina
-            paths = @[[fileOrPath stringByAppendingRetinaSuffix], fileOrPath];
+            //insert Retina versions before non-Retina
+            paths = @[[fileOrPath stringByAppendingSuffixForScale:3],
+                      [fileOrPath stringByAppendingSuffixForScale:2],
+                      fileOrPath];
         }
         
         switch (UI_USER_INTERFACE_IDIOM())
         {
             case UIUserInterfaceIdiomPhone:
             {
-                //check for Retina4 version
-                if (SP_IS_RETINA4())
+                //check for height suffix
+                for (NSString *path in [paths objectEnumerator])
                 {
-                    for (NSString *path in [paths objectEnumerator])
+                    if (SP_IS_RETINA4())
                     {
-                        paths = [paths arrayByAddingObject:[path stringByAppendingRetina4Suffix]];
+                        //use 568h image as fallback if available
+                        paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForHeight:568]];
                     }
+                    paths = [paths arrayByAddingObject:[path stringByAppendingDeviceHeightSuffix]];
                 }
                 
                 //check for Retina
@@ -321,7 +326,9 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                     for (NSString *path in [paths objectEnumerator])
                     {
                         paths = [paths arrayByAddingObject:[path stringByAppendingHDSuffix]];
-                        paths = [paths arrayByAddingObject:[path stringByAppendingRetinaSuffix]];
+                        paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForScale:3]];
+                        paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForScale:2]];
+                        paths = [paths arrayByAddingObject:[path stringByAppendingDeviceScaleSuffix]];
                     }
                 }
                 
@@ -340,13 +347,21 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                 {
                     paths = [paths arrayByAddingObject:[path stringByAppendingHDSuffix]];
                 }
-                
+              
+                //check for height suffix
+                for (NSString *path in [paths objectEnumerator])
+                {
+                    paths = [paths arrayByAddingObject:[path stringByAppendingDeviceHeightSuffix]];
+                }
+              
                 //check for Retina
                 if (SP_IS_RETINA())
                 {
                     for (NSString *path in [paths objectEnumerator])
                     {
-                        paths = [paths arrayByAddingObject:[path stringByAppendingRetinaSuffix]];
+                        paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForScale:3]];
+                        paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForScale:2]];
+                        paths = [paths arrayByAddingObject:[path stringByAppendingDeviceScaleSuffix]];
                     }
                 }
                 
@@ -377,7 +392,9 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                 {
                     for (NSString *path in [paths objectEnumerator])
                     {
-                        paths = [paths arrayByAddingObject:[path stringByAppendingRetinaSuffix]];
+                        paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForScale:3]];
+                        paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForScale:2]];
+                        paths = [paths arrayByAddingObject:[path stringByAppendingDeviceScaleSuffix]];
                     }
                 }
                 
@@ -484,9 +501,20 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)stringByAppendingSuffixForInterfaceIdiom:(UIUserInterfaceIdiom)idiom
 {
-    NSString *suffix = SPDesktopSuffix;
+    NSString *suffix = (idiom == (UIUserInterfaceIdiom)UIUserInterfaceIdiomDesktop)? SPDesktopSuffix: @"";
     switch (idiom)
     {
+        
+#if !TARGET_OS_IPHONE || __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+        
+        case UIUserInterfaceIdiomUnspecified:
+        {
+            suffix = @"";
+            break;
+        }
+        
+#endif
+        
         case UIUserInterfaceIdiomPhone:
         {
             suffix = SPPhoneSuffix;
@@ -500,7 +528,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
             
 #if !TARGET_OS_IPHONE
             
-        case (UIUserInterfaceIdiom)UIUserInterfaceIdiomDesktop:
+        case UIUserInterfaceIdiomDesktop:
         {
             suffix = SPDesktopSuffix;
             break;
@@ -512,22 +540,9 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
     return [self stringByAppendingPathSuffix:suffix];
 }
 
-- (NSString *)stringByAppendingInterfaceIdiomSuffix
+- (NSString *)stringByAppendingDeviceInterfaceIdiomSuffix
 {
-    NSString *suffix = @"";
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
-    {
-        suffix = SPPhoneSuffix;
-    }
-    else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
-    {
-        suffix = SPPadSuffix;
-    }
-    else
-    {
-        suffix = SPDesktopSuffix;
-    }
-    return [self stringByAppendingPathSuffix:suffix];
+    return [self stringByAppendingSuffixForInterfaceIdiom:UI_USER_INTERFACE_IDIOM()];
 }
 
 - (NSString *)stringByDeletingInterfaceIdiomSuffix
@@ -612,37 +627,6 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
     return [[self scaleSuffix] length] != 0;
 }
 
-- (NSString *)stringByAppendingRetinaSuffix
-{
-    return [self stringByAppendingSuffixForScale:2.0f];
-}
-
-- (NSString *)stringByAppendingRetinaSuffixIfDeviceIsRetina
-{
-    if (SP_IS_RETINA())
-    {
-        return [self stringByAppendingRetinaSuffix];
-    }
-    return self;
-}
-
-- (NSString *)stringByDeletingRetinaSuffix
-{
-    if ([self hasRetinaSuffix])
-    {
-        NSString *suffix = [self interfaceIdiomSuffix];
-        return [[[self stringByDeletingPathSuffix:suffix]
-                 stringByDeletingPathSuffix:SPRetinaSuffix]
-                stringByAppendingPathSuffix:suffix];
-    }
-    return self;
-}
-
-- (BOOL)hasRetinaSuffix
-{
-    return [[self scaleSuffix] isEqualToString:SPRetinaSuffix];
-}
-
 - (NSString *)stringByAppendingHDSuffix
 {
     NSString *suffix = [NSString stringWithFormat:@"%@%@%@", SPHDSuffix, [self scaleSuffix], [self interfaceIdiomSuffix]];
@@ -684,11 +668,112 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
     {
         return [[scaleSuffix substringWithRange:NSMakeRange(1, [scaleSuffix length] - 2)] floatValue];
     }
+  
+#if TARGET_OS_IPHONE
+  
     else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && [self hasHDSuffix])
     {
-        return 2.0f;
+        return 2.0;
     }
-    return 1.0f;
+  
+#endif
+  
+    return 1.0;
+}
+
+- (NSString *)stringByAppendingSuffixForHeight:(CGFloat)height
+{
+    if (!height) height = SP_SCREEN_HEIGHT();
+    NSString *suffix = [NSString stringWithFormat:@"-%ih%@%@", (int)height, [self scaleSuffix], [self   interfaceIdiomSuffix]];
+    return [[self stringByDeletingPathSuffix:suffix] stringByAppendingPathSuffix:suffix];
+}
+
+- (NSString *)stringByAppendingDeviceHeightSuffix
+{
+    return [self stringByAppendingSuffixForHeight:0];
+}
+
+- (NSString *)stringByDeletingHeightSuffix
+{
+    NSString *heightSuffix = [self heightSuffix];
+    if ([heightSuffix length])
+    {
+        NSString *suffix = [[self scaleSuffix] stringByAppendingString:[self interfaceIdiomSuffix]];
+        return [[[self stringByDeletingPathSuffix:suffix]
+                 stringByDeletingPathSuffix:heightSuffix]
+                stringByAppendingPathSuffix:suffix];
+    }
+    return self;
+}
+
+- (NSString *)heightSuffix
+{
+    NSString *path = [[[self SP_stringByDeletingPathExtension]
+                       stringByDeletingInterfaceIdiomSuffix]
+                      stringByDeletingScaleSuffix];
+    
+    if ([path hasSuffix:@"h"])
+    {
+        NSRange range = [path rangeOfString:@"-" options:NSBackwardsSearch];
+        if (range.location != NSNotFound)
+        {
+            return [path substringFromIndex:range.location];
+        }
+    }
+    return @"";
+}
+
+- (BOOL)hasHeightSuffix
+{
+    return [[self heightSuffix] length] != 0;
+}
+
+- (CGFloat)heightFromSuffix
+{
+    NSString *heightSuffix = [self heightSuffix];
+    if ([heightSuffix length])
+    {
+        return [[heightSuffix substringWithRange:NSMakeRange(1, [heightSuffix length] - 2)] floatValue];
+    }
+    return 0.0;
+}
+
+@end
+
+
+@implementation NSString (StandardPaths_Deprecated)
+
+static NSString *const SPRetina4Suffix = @"-568h";
+
+- (NSString *)stringByAppendingRetinaSuffix
+{
+    return [self stringByAppendingSuffixForScale:2.0];
+}
+
+- (NSString *)stringByAppendingRetinaSuffixIfDeviceIsRetina
+{
+    if (SP_IS_RETINA())
+    {
+        return [self stringByAppendingRetinaSuffix];
+    }
+    return self;
+}
+
+- (NSString *)stringByDeletingRetinaSuffix
+{
+    if ([self hasRetinaSuffix])
+    {
+        NSString *suffix = [self interfaceIdiomSuffix];
+        return [[[self stringByDeletingPathSuffix:suffix]
+                 stringByDeletingPathSuffix:SPRetinaSuffix]
+                stringByAppendingPathSuffix:suffix];
+    }
+    return self;
+}
+
+- (BOOL)hasRetinaSuffix
+{
+    return [[self scaleSuffix] isEqualToString:SPRetinaSuffix];
 }
 
 - (NSString *)stringByAppendingRetina4Suffix
@@ -783,7 +868,7 @@ NSCache *SP_imageCache(void)
     {
         file = [file stringByAppendingHDSuffix];
         CGFloat scale = [path scaleFromSuffix];
-        if (![path hasRetinaSuffix] && scale > 1.0f)
+        if (![path hasScaleSuffix] && scale > 1.0)
         {
             //need to handle loading ourselves
             NSData *data = [NSData dataWithContentsOfFile:file];
@@ -792,9 +877,9 @@ NSCache *SP_imageCache(void)
             return image;
         }
     }
-    if ([path hasRetina4Suffix] && ![file hasRetina4Suffix])
+    if ([path hasHeightSuffix] && ![file hasHeightSuffix])
     {
-        file = [file stringByAppendingRetina4Suffix];
+        file = [file stringByAppendingSuffixForHeight:[path heightFromSuffix]];
     }
     return [self SP_initWithContentsOfFile:file];
 }
@@ -805,7 +890,7 @@ NSCache *SP_imageCache(void)
     if ([path hasHDSuffix])
     {
         CGFloat scale = [path scaleFromSuffix];
-        if (![path hasRetinaSuffix] && scale > 1.0f)
+        if (![path hasScaleSuffix] && scale > 1.0)
         {
             //need to handle loading & caching ourselves
             NSCache *cache = SP_imageCache();
@@ -821,9 +906,9 @@ NSCache *SP_imageCache(void)
         }
         name = [name stringByAppendingHDSuffix];
     }
-    else if ([path hasRetina4Suffix] && ![name hasRetina4Suffix])
+    else if ([path hasHeightSuffix] && ![name hasHeightSuffix])
     {
-        name = [name stringByAppendingRetina4Suffix];
+        name = [name stringByAppendingSuffixForHeight:[path heightFromSuffix]];
     }
     return [self SP_imageNamed:name];
 }
@@ -845,9 +930,9 @@ NSCache *SP_imageCache(void)
     {
         name = [name stringByAppendingHDSuffix];
     }
-    else if ([path hasRetina4Suffix] && ![name hasRetina4Suffix])
+    else if ([path hasHeightSuffix] && ![name hasHeightSuffix])
     {
-        name = [name stringByAppendingRetina4Suffix];
+        name = [name stringByAppendingSuffixForHeight:[path heightFromSuffix]];
     }
     return [self SP_loadNibNamed:name owner:owner options:options];
 }
@@ -869,9 +954,9 @@ NSCache *SP_imageCache(void)
     {
         name = [name stringByAppendingHDSuffix];
     }
-    else if ([path hasRetina4Suffix] && ![name hasRetina4Suffix])
+    else if ([path hasHeightSuffix] && ![name hasHeightSuffix])
     {
-        name = [name stringByAppendingRetina4Suffix];
+        name = [name stringByAppendingSuffixForScale:[path heightFromSuffix]];
     }
     return [self SP_nibWithNibName:name bundle:bundleOrNil];
 }
@@ -894,9 +979,9 @@ NSCache *SP_imageCache(void)
         NSFileManager *fileManager = [NSFileManager defaultManager];
         NSString *path = [[self.nibBundle resourcePath] stringByAppendingPathComponent:name];
         path = [fileManager normalizedPathForFile:path ofType:@"nib"];
-        if ([path hasRetina4Suffix] && ![name hasRetina4Suffix])
+        if ([path hasHeightSuffix] && ![name hasHeightSuffix])
         {
-            name = [name stringByAppendingRetina4Suffix];
+            name = [name stringByAppendingSuffixForHeight:[path heightFromSuffix]];
         }
         if ([fileManager fileExistsAtPath:path])
         {

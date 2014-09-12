@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.5.6
+//  Version 1.6
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -46,27 +46,31 @@
 #ifndef UI_USER_INTERFACE_IDIOM
 #define UI_USER_INTERFACE_IDIOM() UIUserInterfaceIdiomDesktop
 
-typedef enum
+typedef NS_ENUM(NSInteger, UIUserInterfaceIdiom)
 {
+    UIUserInterfaceIdiomUnspecified = -1,
     UIUserInterfaceIdiomPhone,
     UIUserInterfaceIdiomPad,
     UIUserInterfaceIdiomDesktop
-}
-UIUserInterfaceIdiom;
+};
 
-#elif defined(__IPHONE_OS_VERSION_MAX_ALLOWED)
+#elif TARGET_OS_IPHONE
 
 #define UIUserInterfaceIdiomDesktop (UIUserInterfaceIdiomPad + 1)
 
 #endif
 
 
+#ifndef SP_CONSTANTS_DEFINED
+#define SP_CONSTANTS_DEFINED
+
 static NSString *const SPPhoneSuffix = @"~iphone";
 static NSString *const SPPadSuffix = @"~ipad";
 static NSString *const SPDesktopSuffix = @"~mac";
 static NSString *const SPRetinaSuffix = @"@2x";
 static NSString *const SPHDSuffix = @"-hd";
-static NSString *const SPRetina4Suffix = @"-568h";
+
+#endif
 
 
 @interface NSFileManager (StandardPaths)
@@ -101,7 +105,7 @@ static NSString *const SPRetina4Suffix = @"-568h";
 - (BOOL)hasPathSuffix:(NSString *)suffix;
 
 - (NSString *)stringByAppendingSuffixForInterfaceIdiom:(UIUserInterfaceIdiom)idiom;
-- (NSString *)stringByAppendingInterfaceIdiomSuffix;
+- (NSString *)stringByAppendingDeviceInterfaceIdiomSuffix;
 - (NSString *)stringByDeletingInterfaceIdiomSuffix;
 - (NSString *)interfaceIdiomSuffix;
 - (BOOL)hasInterfaceIdiomSuffix;
@@ -114,11 +118,6 @@ static NSString *const SPRetina4Suffix = @"-568h";
 - (NSString *)scaleSuffix;
 - (BOOL)hasScaleSuffix;
 
-- (NSString *)stringByAppendingRetinaSuffix;
-- (NSString *)stringByAppendingRetinaSuffixIfDeviceIsRetina;
-- (NSString *)stringByDeletingRetinaSuffix;
-- (BOOL)hasRetinaSuffix;
-
 - (NSString *)stringByAppendingHDSuffix;
 - (NSString *)stringByAppendingHDSuffixIfDeviceIsHD;
 - (NSString *)stringByDeletingHDSuffix;
@@ -126,9 +125,27 @@ static NSString *const SPRetina4Suffix = @"-568h";
 
 - (CGFloat)scaleFromSuffix;
 
-- (NSString *)stringByAppendingRetina4Suffix;
-- (NSString *)stringByAppendingRetina4SuffixIfDeviceIsRetina4;
-- (NSString *)stringByDeletingRetina4Suffix;
-- (BOOL)hasRetina4Suffix;
+- (NSString *)stringByAppendingSuffixForHeight:(CGFloat)height;
+- (NSString *)stringByAppendingDeviceHeightSuffix;
+- (NSString *)stringByDeletingHeightSuffix;
+- (NSString *)heightSuffix;
+- (BOOL)hasHeightSuffix;
+
+- (CGFloat)heightFromSuffix;
+
+@end
+
+
+@interface NSString (StandardPaths_Deprecated)
+
+- (NSString *)stringByAppendingRetinaSuffix __deprecated;
+- (NSString *)stringByAppendingRetinaSuffixIfDeviceIsRetina __deprecated;
+- (NSString *)stringByDeletingRetinaSuffix __deprecated;
+- (BOOL)hasRetinaSuffix __deprecated;
+
+- (NSString *)stringByAppendingRetina4Suffix __deprecated;
+- (NSString *)stringByAppendingRetina4SuffixIfDeviceIsRetina4 __deprecated;
+- (NSString *)stringByDeletingRetina4Suffix __deprecated;
+- (BOOL)hasRetina4Suffix __deprecated;
 
 @end

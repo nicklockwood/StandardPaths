@@ -45,6 +45,10 @@
 		01C5B5BF158370DB001607BC /* Image2.png in Resources */ = {isa = PBXBuildFile; fileRef = 019895171582B32400023C5C /* Image2.png */; };
 		01C5B5C01583714C001607BC /* Image1~mac.png in Resources */ = {isa = PBXBuildFile; fileRef = 01C5B5B2158365CC001607BC /* Image1~mac.png */; };
 		01C5B5C11583714C001607BC /* Image1@2x~mac.png in Resources */ = {isa = PBXBuildFile; fileRef = 01C5B5B515836A87001607BC /* Image1@2x~mac.png */; };
+		13E2992719C1EA3100D9046A /* Image1-667h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 13E2992419C1EA3100D9046A /* Image1-667h@2x.png */; };
+		13E2992819C1EA3100D9046A /* Image1-736h@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 13E2992519C1EA3100D9046A /* Image1-736h@3x.png */; };
+		13E2992919C1EA3100D9046A /* image1@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 13E2992619C1EA3100D9046A /* image1@3x.png */; };
+		13E2992B19C1F68000D9046A /* Launch Screen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 13E2992A19C1F68000D9046A /* Launch Screen.xib */; };
 		B25CB7B31602270F00D7D145 /* ViewController-568h.xib in Resources */ = {isa = PBXBuildFile; fileRef = B25CB7B21602270F00D7D145 /* ViewController-568h.xib */; };
 		B25CB7B61602286600D7D145 /* Image1-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B25CB7B51602286600D7D145 /* Image1-568h@2x.png */; };
 		B2C2AB8C16026DA1008A07DE /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B2C2AB8B16026DA1008A07DE /* Default-568h@2x.png */; };
@@ -91,6 +95,10 @@
 		01C5B5A815835DD2001607BC /* WindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WindowController.m; sourceTree = "<group>"; };
 		01C5B5B2158365CC001607BC /* Image1~mac.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image1~mac.png"; sourceTree = "<group>"; };
 		01C5B5B515836A87001607BC /* Image1@2x~mac.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image1@2x~mac.png"; sourceTree = "<group>"; };
+		13E2992419C1EA3100D9046A /* Image1-667h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image1-667h@2x.png"; sourceTree = "<group>"; };
+		13E2992519C1EA3100D9046A /* Image1-736h@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image1-736h@3x.png"; sourceTree = "<group>"; };
+		13E2992619C1EA3100D9046A /* image1@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "image1@3x.png"; sourceTree = "<group>"; };
+		13E2992A19C1F68000D9046A /* Launch Screen.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = "Launch Screen.xib"; sourceTree = "<group>"; };
 		B25CB7B21602270F00D7D145 /* ViewController-568h.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = "ViewController-568h.xib"; sourceTree = "<group>"; };
 		B25CB7B51602286600D7D145 /* Image1-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Image1-568h@2x.png"; sourceTree = "<group>"; };
 		B2C2AB8B16026DA1008A07DE /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
@@ -203,6 +211,7 @@
 				01C5B55E15835B5C001607BC /* FileSuffixesTest-Info.plist */,
 				01C5B55F15835B5C001607BC /* FileSuffixesTest-Prefix.pch */,
 				01C5B56115835B5C001607BC /* main.m */,
+				13E2992A19C1F68000D9046A /* Launch Screen.xib */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -248,7 +257,10 @@
 				B2C2AB8B16026DA1008A07DE /* Default-568h@2x.png */,
 				019895111582B32400023C5C /* Image1.png */,
 				019895121582B32400023C5C /* Image1@2x.png */,
+				13E2992619C1EA3100D9046A /* image1@3x.png */,
 				B25CB7B51602286600D7D145 /* Image1-568h@2x.png */,
+				13E2992419C1EA3100D9046A /* Image1-667h@2x.png */,
+				13E2992519C1EA3100D9046A /* Image1-736h@3x.png */,
 				019895171582B32400023C5C /* Image2.png */,
 			);
 			name = iPhone;
@@ -315,7 +327,7 @@
 		019894E41582B2E100023C5C /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0500;
+				LastUpgradeCheck = 0600;
 				ORGANIZATIONNAME = "Charcoal Design";
 			};
 			buildConfigurationList = 019894E71582B2E100023C5C /* Build configuration list for PBXProject "FileSuffixesTest" */;
@@ -350,10 +362,14 @@
 				0198951E1582B32400023C5C /* Image2.png in Resources */,
 				01C5B56715835B5C001607BC /* InfoPlist.strings in Resources */,
 				01C5B56C15835B5C001607BC /* ViewController.xib in Resources */,
+				13E2992B19C1F68000D9046A /* Launch Screen.xib in Resources */,
 				01C5B56D15835B5C001607BC /* ViewController~ipad.xib in Resources */,
 				01C5B5C01583714C001607BC /* Image1~mac.png in Resources */,
+				13E2992719C1EA3100D9046A /* Image1-667h@2x.png in Resources */,
 				01C5B5C11583714C001607BC /* Image1@2x~mac.png in Resources */,
+				13E2992919C1EA3100D9046A /* image1@3x.png in Resources */,
 				B25CB7B31602270F00D7D145 /* ViewController-568h.xib in Resources */,
+				13E2992819C1EA3100D9046A /* Image1-736h@3x.png in Resources */,
 				B25CB7B61602286600D7D145 /* Image1-568h@2x.png in Resources */,
 				B2C2AB8C16026DA1008A07DE /* Default-568h@2x.png in Resources */,
 			);
@@ -448,14 +464,29 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_ASSIGN_ENUM = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_CXX0X_EXTENSIONS = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_EXPLICIT_OWNERSHIP_TYPE = YES;
+				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_MISSING_PROPERTY_SYNTHESIS = YES;
+				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
+				CLANG_WARN_OBJC_REPEATED_USE_OF_WEAK = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CLANG_WARN__EXIT_TIME_DESTRUCTORS = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -463,20 +494,40 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
+				GCC_SHORT_ENUMS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
+				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_FOUR_CHARACTER_CONSTANTS = YES;
+				GCC_WARN_HIDDEN_VIRTUAL_FUNCTIONS = YES;
+				GCC_WARN_INHIBIT_ALL_WARNINGS = NO;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MULTIPLE_DEFINITION_TYPES_FOR_SELECTOR = YES;
+				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_STRICT_SELECTOR_MATCH = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				WARNING_CFLAGS = (
-					"-Wall",
-					"-Wextra",
+					"-Weverything",
+					"-Wno-objc-missing-property-synthesis",
 				);
 			};
 			name = Debug;
@@ -486,29 +537,64 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_ASSIGN_ENUM = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_CXX0X_EXTENSIONS = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_EXPLICIT_OWNERSHIP_TYPE = YES;
+				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_MISSING_PROPERTY_SYNTHESIS = YES;
+				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
+				CLANG_WARN_OBJC_REPEATED_USE_OF_WEAK = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CLANG_WARN__EXIT_TIME_DESTRUCTORS = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_SHORT_ENUMS = YES;
+				GCC_TREAT_IMPLICIT_FUNCTION_DECLARATIONS_AS_ERRORS = YES;
+				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = YES;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_FOUR_CHARACTER_CONSTANTS = YES;
+				GCC_WARN_HIDDEN_VIRTUAL_FUNCTIONS = YES;
+				GCC_WARN_INHIBIT_ALL_WARNINGS = NO;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MULTIPLE_DEFINITION_TYPES_FOR_SELECTOR = YES;
+				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_STRICT_SELECTOR_MATCH = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 				WARNING_CFLAGS = (
-					"-Wall",
-					"-Wextra",
+					"-Weverything",
+					"-Wno-objc-missing-property-synthesis",
 				);
 			};
 			name = Release;
@@ -551,7 +637,7 @@
 				GCC_PREFIX_HEADER = "MacClasses/FileSuffixesTestMac-Prefix.pch";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				INFOPLIST_FILE = "MacClasses/FileSuffixesTestMac-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.6.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -570,7 +656,7 @@
 				GCC_PREFIX_HEADER = "MacClasses/FileSuffixesTestMac-Prefix.pch";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				INFOPLIST_FILE = "MacClasses/FileSuffixesTestMac-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.6.8;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				WRAPPER_EXTENSION = app;
