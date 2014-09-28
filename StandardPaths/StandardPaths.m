@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.6
+//  Version 1.6.1
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -48,18 +48,20 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 #define SP_IS_HD() (UI_USER_INTERFACE_IDIOM() != UIUserInterfaceIdiomPhone || SP_SCREEN_SCALE() > 1.0)
 #define SP_SCREEN_SCALE() ([UIScreen mainScreen].scale)
-#define SP_SCREEN_HEIGHT() ([UIScreen mainScreen].bounds.size.height)
+#define SP_SCREEN_ASPECT() ([UIScreen mainScreen].bounds.size.height/[UIScreen mainScreen].bounds.size.width)
+#define SP_SCREEN_HEIGHT() MAX([UIScreen mainScreen].bounds.size.height, [UIScreen mainScreen].bounds.size.width)
 
-#else 
+#else
 
 #define SP_IS_HD() 1
 #define SP_SCREEN_SCALE() ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)]? [[NSScreen mainScreen] backingScaleFactor]: 1.0)
+#define SP_SCREEN_ASPECT() ([NSScreen mainScreen].frame.size.height/[NSScreen mainScreen].frame.size.width)
 #define SP_SCREEN_HEIGHT() ([NSScreen mainScreen].frame.size.height)
 
 #endif
 
 #define SP_IS_RETINA() (SP_SCREEN_SCALE() > 1.0)
-#define SP_IS_RETINA4() (SP_SCREEN_HEIGHT() >= 568)
+#define SP_IS_RETINA4() (fabs(SP_SCREEN_ASPECT() - 1.775) < 0.01 || fabs(SP_SCREEN_ASPECT() - 0.5633802817) < 0.01)
 
 
 @interface NSString (SP_Private)
@@ -218,7 +220,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)pathForPublicFile:(NSString *)file
 {
-	return [[self publicDataPath] stringByAppendingPathComponent:file];
+    return [[self publicDataPath] stringByAppendingPathComponent:file];
 }
 
 - (NSString *)pathForPrivateFile:(NSString *)file
@@ -295,7 +297,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         
         //generate all possible paths
         NSArray *paths = @[fileOrPath];
-      
+        
         //check for Retina
         if (!SP_IS_RETINA())
         {
@@ -347,13 +349,13 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                 {
                     paths = [paths arrayByAddingObject:[path stringByAppendingHDSuffix]];
                 }
-              
+                
                 //check for height suffix
                 for (NSString *path in [paths objectEnumerator])
                 {
                     paths = [paths arrayByAddingObject:[path stringByAppendingDeviceHeightSuffix]];
                 }
-              
+                
                 //check for Retina
                 if (SP_IS_RETINA())
                 {
@@ -501,43 +503,11 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)stringByAppendingSuffixForInterfaceIdiom:(UIUserInterfaceIdiom)idiom
 {
-    NSString *suffix = (idiom == (UIUserInterfaceIdiom)UIUserInterfaceIdiomDesktop)? SPDesktopSuffix: @"";
-    switch (idiom)
-    {
-        
-#if !TARGET_OS_IPHONE || __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
-        
-        case UIUserInterfaceIdiomUnspecified:
-        {
-            suffix = @"";
-            break;
-        }
-        
-#endif
-        
-        case UIUserInterfaceIdiomPhone:
-        {
-            suffix = SPPhoneSuffix;
-            break;
-        }
-        case UIUserInterfaceIdiomPad:
-        {
-            suffix = SPPadSuffix;
-            break;
-        }
-            
-#if !TARGET_OS_IPHONE
-            
-        case UIUserInterfaceIdiomDesktop:
-        {
-            suffix = SPDesktopSuffix;
-            break;
-        }
-            
-#endif
-            
-    }
-    return [self stringByAppendingPathSuffix:suffix];
+    NSDictionary *suffixes = @{@(UIUserInterfaceIdiomPhone): SPPhoneSuffix,
+                               @(UIUserInterfaceIdiomPad): SPPadSuffix,
+                               @(UIUserInterfaceIdiomDesktop): SPDesktopSuffix};
+    
+    return [self stringByAppendingPathSuffix:suffixes[@(idiom)] ?: @""];
 }
 
 - (NSString *)stringByAppendingDeviceInterfaceIdiomSuffix
@@ -567,26 +537,18 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (UIUserInterfaceIdiom)interfaceIdiomFromSuffix
 {
-    NSString *suffix = [self interfaceIdiomSuffix];
-    if ([suffix isEqualToString:SPPadSuffix])
-    {
-        return UIUserInterfaceIdiomPad;
-    }
-    else if ([suffix isEqualToString:SPPhoneSuffix])
-    {
-        return UIUserInterfaceIdiomPhone;
-    }
-    else if ([suffix isEqualToString:SPDesktopSuffix])
-    {
-        return (UIUserInterfaceIdiom)UIUserInterfaceIdiomDesktop;
-    }
-    return UI_USER_INTERFACE_IDIOM();
+    NSDictionary *suffixes = @{SPPhoneSuffix: @(UIUserInterfaceIdiomPhone),
+                               SPPadSuffix: @(UIUserInterfaceIdiomPad),
+                               SPDesktopSuffix: @(UIUserInterfaceIdiomDesktop)};
+    
+    NSNumber *suffix = suffixes[[self interfaceIdiomSuffix]];
+    return suffix? (UIUserInterfaceIdiom)[suffix integerValue]: UI_USER_INTERFACE_IDIOM();
 }
 
 - (NSString *)stringByAppendingSuffixForScale:(CGFloat)scale
 {
     scale = scale ?: SP_SCREEN_SCALE();
-    NSString *suffix = [NSString stringWithFormat:@"@%.2gx%@", scale, [self interfaceIdiomSuffix]];
+    NSString *suffix = [NSString stringWithFormat:@"@%gx%@", scale, [self interfaceIdiomSuffix]];
     return [[self stringByDeletingInterfaceIdiomSuffix] stringByAppendingPathSuffix:suffix];
 }
 
@@ -668,23 +630,23 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
     {
         return [[scaleSuffix substringWithRange:NSMakeRange(1, [scaleSuffix length] - 2)] floatValue];
     }
-  
+    
 #if TARGET_OS_IPHONE
-  
+    
     else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && [self hasHDSuffix])
     {
         return 2.0;
     }
-  
+    
 #endif
-  
+    
     return 1.0;
 }
 
 - (NSString *)stringByAppendingSuffixForHeight:(CGFloat)height
 {
     if (!height) height = SP_SCREEN_HEIGHT();
-    NSString *suffix = [NSString stringWithFormat:@"-%ih%@%@", (int)height, [self scaleSuffix], [self   interfaceIdiomSuffix]];
+    NSString *suffix = [NSString stringWithFormat:@"-%gh%@%@", height, [self scaleSuffix], [self   interfaceIdiomSuffix]];
     return [[self stringByDeletingPathSuffix:suffix] stringByAppendingPathSuffix:suffix];
 }
 
@@ -846,7 +808,7 @@ NSCache *SP_imageCache(void)
     if (cache == nil)
     {
         cache = [[NSCache alloc] init];
-
+        
         [[NSNotificationCenter defaultCenter] addObserver:cache selector:@selector(removeAllObjects) name:UIApplicationDidReceiveMemoryWarningNotification object:nil];
     }
     return cache;
@@ -930,7 +892,11 @@ NSCache *SP_imageCache(void)
     {
         name = [name stringByAppendingHDSuffix];
     }
-    else if ([path hasHeightSuffix] && ![name hasHeightSuffix])
+    if ([path hasScaleSuffix] && ![name hasScaleSuffix])
+    {
+        name = [name stringByAppendingSuffixForScale:[path scaleFromSuffix]];
+    }
+    if ([path hasHeightSuffix] && ![name hasHeightSuffix])
     {
         name = [name stringByAppendingSuffixForHeight:[path heightFromSuffix]];
     }
@@ -954,9 +920,13 @@ NSCache *SP_imageCache(void)
     {
         name = [name stringByAppendingHDSuffix];
     }
-    else if ([path hasHeightSuffix] && ![name hasHeightSuffix])
+    if ([path hasScaleSuffix] && ![name hasScaleSuffix])
     {
-        name = [name stringByAppendingSuffixForScale:[path heightFromSuffix]];
+        name = [name stringByAppendingSuffixForScale:[path scaleFromSuffix]];
+    }
+    if ([path hasHeightSuffix] && ![name hasHeightSuffix])
+    {
+        name = [name stringByAppendingSuffixForHeight:[path heightFromSuffix]];
     }
     return [self SP_nibWithNibName:name bundle:bundleOrNil];
 }

@@ -291,6 +291,11 @@ This would then return "resourceName" on an iPhone 4, and "resourceName-568h" on
 Release notes
 ---------------
 
+Version 1.6.1
+
+- Added better support for iPhone 6 and 6 plus
+- Fixed potential crash in nib loading logic
+
 Version 1.6
 
 - Added support for new screen sizes and pixel densities
