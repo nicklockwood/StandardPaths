@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.6.2
+//  Version 1.6.3
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -684,8 +684,15 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         if (range.location != NSNotFound)
         {
             NSString *heightSuffix = [path substringFromIndex:range.location];
-            NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
-            if ([formatter numberFromString:heightSuffix]) return heightSuffix;
+            if ([heightSuffix length] > 2)
+            {
+                NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
+                if ([formatter numberFromString:[heightSuffix substringWithRange:NSMakeRange(1, [heightSuffix length] - 2)]])
+                {
+                    return heightSuffix;
+                }
+            }
+            
         }
     }
     return @"";
