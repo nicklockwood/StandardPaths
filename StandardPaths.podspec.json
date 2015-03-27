@@ -16,7 +16,7 @@
     "type": "Zlib License",
     "file": "LICENCE.md"
   },
-  "requires_arc": true,
+  "requires_arc": false,
   "platforms": {
     "ios": "4.3",
     "osx": "10.6"
