@@ -42,6 +42,7 @@
 #define SP_SWIZZLE_ENABLED 1
 #endif
 
+#ifndef __IPHONE_8_3
 
 #ifndef UI_USER_INTERFACE_IDIOM
 #define UI_USER_INTERFACE_IDIOM() UIUserInterfaceIdiomDesktop
@@ -54,7 +55,11 @@ typedef NS_ENUM(NSInteger, UIUserInterfaceIdiom)
     UIUserInterfaceIdiomDesktop
 };
 
-#elif TARGET_OS_IPHONE
+#endif
+
+#endif
+
+#if TARGET_OS_IPHONE
 
 #define UIUserInterfaceIdiomDesktop (UIUserInterfaceIdiomPad + 1)
 
