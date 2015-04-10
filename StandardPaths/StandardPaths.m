@@ -38,7 +38,7 @@
 
 #pragma GCC diagnostic ignored "-Wgnu"
 #pragma GCC diagnostic ignored "-Wselector"
-
+#pragma GCC diagnostic ignored "-Wswitch"
 
 //workaround for rdar://problem/11017158 crash in iOS5
 extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import));
