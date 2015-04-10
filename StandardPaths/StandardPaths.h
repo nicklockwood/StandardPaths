@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.6.3
+//  Version 1.6.4
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -42,27 +42,25 @@
 #define SP_SWIZZLE_ENABLED 1
 #endif
 
-#ifndef __IPHONE_8_3
+
+#if TARGET_OS_IPHONE
+
+#define UIUserInterfaceIdiomDesktop (UIUserInterfaceIdiomPad + 1)
+
+#else
 
 #ifndef UI_USER_INTERFACE_IDIOM
 #define UI_USER_INTERFACE_IDIOM() UIUserInterfaceIdiomDesktop
 
 typedef NS_ENUM(NSInteger, UIUserInterfaceIdiom)
 {
-    UIUserInterfaceIdiomUnspecified = -1,
-    UIUserInterfaceIdiomPhone,
-    UIUserInterfaceIdiomPad,
-    UIUserInterfaceIdiomDesktop
+  UIUserInterfaceIdiomUnspecified = -1,
+  UIUserInterfaceIdiomPhone,
+  UIUserInterfaceIdiomPad,
+  UIUserInterfaceIdiomDesktop
 };
 
 #endif
-
-#endif
-
-#if TARGET_OS_IPHONE
-
-#define UIUserInterfaceIdiomDesktop (UIUserInterfaceIdiomPad + 1)
-
 #endif
 
 

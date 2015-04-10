@@ -17,7 +17,7 @@ Finally, StandardPaths swizzles some of the methods in UIKit and AppKit so that 
 Supported OS & SDK Versions
 -----------------------------
 
-* Supported build target - iOS 8.0 / Mac OS 10.9 (Xcode 6.0, Apple LLVM compiler 6.0)
+* Supported build target - iOS 8.3 / Mac OS 10.10 (Xcode 6.3, Apple LLVM compiler 6.0)
 * Earliest supported deployment target - iOS 6.0 / Mac OS 10.7
 * Earliest compatible deployment target - iOS 4.3 / Mac OS 10.6
 
@@ -290,6 +290,10 @@ This would then return "resourceName" on an iPhone 4, and "resourceName-568h" on
 
 Release notes
 ---------------
+
+Version 1.6.4
+
+- Fixed compiler errors in Xcode 6.3
 
 Version 1.6.3
 
