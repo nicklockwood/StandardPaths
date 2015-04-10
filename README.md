@@ -375,6 +375,10 @@ This would then return "resourceName" on an iPhone 4, and "resourceName-568h" on
 Release notes
 ---------------
 
+Version 1.6.4
+
+- Fixed compiler errors in Xcode 6.3
+
 Version 1.6.3
 
 - Fixed bug with -xxxh suffix not being correctly detected for nib files
