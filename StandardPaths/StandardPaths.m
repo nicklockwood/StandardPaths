@@ -686,7 +686,12 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
             NSString *heightSuffix = [path substringFromIndex:range.location];
             if ([heightSuffix length] > 2)
             {
-                NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
+                static NSNumberFormatter *formatter;
+                static dispatch_once_t onceToken;
+                dispatch_once(&onceToken, ^{
+                  formatter = [[NSNumberFormatter alloc] init];
+                  formatter.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+                });
                 if ([formatter numberFromString:[heightSuffix substringWithRange:NSMakeRange(1, [heightSuffix length] - 2)]])
                 {
                     return heightSuffix;
