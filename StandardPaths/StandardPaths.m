@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.6.3
+//  Version 1.6.4
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -38,7 +38,7 @@
 
 #pragma GCC diagnostic ignored "-Wgnu"
 #pragma GCC diagnostic ignored "-Wselector"
-
+#pragma GCC diagnostic ignored "-Wswitch"
 
 //workaround for rdar://problem/11017158 crash in iOS5
 extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import));
@@ -686,7 +686,12 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
             NSString *heightSuffix = [path substringFromIndex:range.location];
             if ([heightSuffix length] > 2)
             {
-                NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
+                static NSNumberFormatter *formatter;
+                static dispatch_once_t onceToken;
+                dispatch_once(&onceToken, ^{
+                  formatter = [[NSNumberFormatter alloc] init];
+                  formatter.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+                });
                 if ([formatter numberFromString:[heightSuffix substringWithRange:NSMakeRange(1, [heightSuffix length] - 2)]])
                 {
                     return heightSuffix;
