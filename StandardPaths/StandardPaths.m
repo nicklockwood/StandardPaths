@@ -251,6 +251,20 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
     return [[self resourcePath] stringByAppendingPathComponent:file];
 }
 
+- (NSArray *)localisedPathsForResource:(NSString *)fileOrPath
+{
+    NSArray *localizations = [[NSBundle mainBundle] preferredLocalizations];
+    NSMutableArray *paths = [[NSMutableArray alloc] initWithCapacity:localizations.count];
+    for (NSString *localization in localizations) {
+        NSString *path = [[[self resourcePath] stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.lproj", localization]] stringByAppendingPathComponent:fileOrPath];
+        [paths addObject:path];
+    }
+    NSString *path = [[[self resourcePath] stringByAppendingPathComponent:@"Base.lproj"] stringByAppendingPathComponent:fileOrPath];
+    [paths addObject:path];
+    
+    return paths;
+}
+
 - (NSString *)normalizedPathForFile:(NSString *)fileOrPath
 {
     return [self normalizedPathForFile:fileOrPath ofType:@"png"];
@@ -258,11 +272,48 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)normalizedPathForFile:(NSString *)fileOrPath ofType:(NSString *)extension
 {
+    
+    //normalize extension
+    if (![[fileOrPath SP_pathExtension] length] && [extension length])
+    {
+        fileOrPath = [fileOrPath SP_stringByAppendingPathExtension:extension];
+    }
+    
+    if ([fileOrPath isAbsolutePath])
+    {
+        return [self normalizedPathForAbsoluteFilePath:fileOrPath];
+    }
+    
+    NSString *finalPath = nil;
+    
+    NSString *absoluteFileOrPath = [self pathForResource:fileOrPath];
+    finalPath = [self normalizedPathForAbsoluteFilePath:absoluteFileOrPath];
+    if (finalPath)
+    {
+        return finalPath;
+    }
+    
+    NSArray *paths = [self localisedPathsForResource:fileOrPath];
+    for (NSString *localisedPath in paths)
+    {
+        finalPath = [self normalizedPathForAbsoluteFilePath:localisedPath];
+        if (finalPath)
+        {
+            return finalPath;
+        }
+    }
+    
+    return finalPath;
+}
+
+
+- (NSString *)normalizedPathForAbsoluteFilePath:(NSString *)absoluteFilePath
+{
     //set up cache
     static NSCache *cache;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-
+        
         cache = [[NSCache alloc] init];
         
 #if TARGET_OS_IPHONE
@@ -273,23 +324,11 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         
     });
     
-    //normalize extension
-    if (![[fileOrPath SP_pathExtension] length] && [extension length])
-    {
-        fileOrPath = [fileOrPath SP_stringByAppendingPathExtension:extension];
-    }
-    
-    //convert to absolute path
-    if (![fileOrPath isAbsolutePath])
-    {
-        fileOrPath = [self pathForResource:fileOrPath];
-    }
-    
     @synchronized (cache)
     {
         //check cache
-        NSString *cacheKey = fileOrPath;
-        BOOL cachable = [fileOrPath hasPrefix:[self resourcePath]];
+        NSString *cacheKey = absoluteFilePath;
+        BOOL cachable = [absoluteFilePath hasPrefix:[self resourcePath]];
         if (cachable)
         {
             NSString *path = [cache objectForKey:cacheKey];
@@ -300,15 +339,15 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         }
         
         //generate all possible paths
-        NSArray *paths = @[fileOrPath];
+        NSArray *paths = @[absoluteFilePath];
         
         //check for Retina
         if (!SP_IS_RETINA())
         {
             //insert Retina versions before non-Retina
-            paths = @[[fileOrPath stringByAppendingSuffixForScale:3],
-                      [fileOrPath stringByAppendingSuffixForScale:2],
-                      fileOrPath];
+            paths = @[[absoluteFilePath stringByAppendingSuffixForScale:3],
+                      [absoluteFilePath stringByAppendingSuffixForScale:2],
+                      absoluteFilePath];
         }
         
         switch (UI_USER_INTERFACE_IDIOM())
@@ -382,9 +421,10 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
             case UIUserInterfaceIdiomDesktop:
             {
                 //add HiDPI tiff extension
+                NSString *extension = [absoluteFilePath pathExtension];
                 if ([@[@"", @"png", @"jpg", @"jpeg"] containsObject:[extension lowercaseString]])
                 {
-                    paths = [paths arrayByAddingObject:[fileOrPath stringByReplacingPathExtensionWithExtension:@"tiff"]];
+                    paths = [paths arrayByAddingObject:[absoluteFilePath stringByReplacingPathExtensionWithExtension:@"tiff"]];
                 }
                 
                 //add HD suffix
