@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.6.4
+//  Version 1.6.5
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -36,9 +36,11 @@
 #include <sys/xattr.h>
 
 
-#pragma GCC diagnostic ignored "-Wgnu"
-#pragma GCC diagnostic ignored "-Wselector"
-#pragma GCC diagnostic ignored "-Wswitch"
+#pragma clang diagnostic ignored "-Wgnu"
+#pragma clang diagnostic ignored "-Wselector"
+#pragma clang diagnostic ignored "-Wswitch"
+#pragma clang diagnostic ignored "-Wfloat-conversion"
+#pragma clang diagnostic ignored "-Wdouble-promotion"
 
 //workaround for rdar://problem/11017158 crash in iOS5
 extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import));
@@ -66,9 +68,9 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 @interface NSString (SP_Private)
 
-- (NSString *)SP_pathExtension;
+@property (nonatomic, readonly) NSString *SP_pathExtension;
 - (NSString *)SP_stringByAppendingPathExtension:(NSString *)extension;
-- (NSString *)SP_stringByDeletingPathExtension;
+@property (nonatomic, readonly) NSString *SP_stringByDeletingPathExtension;
 
 @end
 
@@ -82,7 +84,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
     dispatch_once(&onceToken, ^{
         
         //user documents folder
-        path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+        path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).lastObject;
         
         //retain path
         path = [[NSString alloc] initWithString:path];
@@ -98,7 +100,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
     dispatch_once(&onceToken, ^{
         
         //application support folder
-        path = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) lastObject];
+        path = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES).lastObject;
             
 #if !TARGET_OS_IPHONE
             
@@ -128,7 +130,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
     dispatch_once(&onceToken, ^{
         
         //cache folder
-        path = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
+        path = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).lastObject;
             
 #if !TARGET_OS_IPHONE
             
@@ -158,7 +160,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
     dispatch_once(&onceToken, ^{
         
         //offline data folder
-        path = [[self privateDataPath] stringByAppendingPathComponent:@"Offline Data"];
+        path = [self.privateDataPath stringByAppendingPathComponent:@"Offline Data"];
         
         //create the folder if it doesn't exist
         if (![self fileExistsAtPath:path])
@@ -176,7 +178,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         {
             //use the iOS 5.0.1 mobile backup flag to exclude file from backp
             u_int8_t b = 1;
-            setxattr([path fileSystemRepresentation], "com.apple.MobileBackup", &b, 1, 0, 0);
+            setxattr(path.fileSystemRepresentation, "com.apple.MobileBackup", &b, 1, 0, 0);
         }
         
         //retain path
@@ -198,7 +200,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         //apparently NSTemporaryDirectory() can return nil in some cases
         if (!path)
         {
-            path = [[self cacheDataPath] stringByAppendingPathComponent:@"Temporary Files"];
+            path = [self.cacheDataPath stringByAppendingPathComponent:@"Temporary Files"];
         }
         
         //retain path
@@ -215,7 +217,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
     dispatch_once(&onceToken, ^{
     
         //bundle path
-        path = [[NSString alloc] initWithString:[[NSBundle mainBundle] resourcePath]];
+        path = [NSBundle mainBundle].resourcePath;
     });
     
     return path;
@@ -223,32 +225,32 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)pathForPublicFile:(NSString *)file
 {
-    return [[self publicDataPath] stringByAppendingPathComponent:file];
+    return [self.publicDataPath stringByAppendingPathComponent:file];
 }
 
 - (NSString *)pathForPrivateFile:(NSString *)file
 {
-    return [[self privateDataPath] stringByAppendingPathComponent:file];
+    return [self.privateDataPath stringByAppendingPathComponent:file];
 }
 
 - (NSString *)pathForCacheFile:(NSString *)file
 {
-    return [[self cacheDataPath] stringByAppendingPathComponent:file];
+    return [self.cacheDataPath stringByAppendingPathComponent:file];
 }
 
 - (NSString *)pathForOfflineFile:(NSString *)file
 {
-    return [[self offlineDataPath] stringByAppendingPathComponent:file];
+    return [self.offlineDataPath stringByAppendingPathComponent:file];
 }
 
 - (NSString *)pathForTemporaryFile:(NSString *)file
 {
-    return [[self temporaryDataPath] stringByAppendingPathComponent:file];
+    return [self.temporaryDataPath stringByAppendingPathComponent:file];
 }
 
 - (NSString *)pathForResource:(NSString *)file
 {
-    return [[self resourcePath] stringByAppendingPathComponent:file];
+    return [self.resourcePath stringByAppendingPathComponent:file];
 }
 
 - (NSString *)normalizedPathForFile:(NSString *)fileOrPath
@@ -274,13 +276,13 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
     });
     
     //normalize extension
-    if (![[fileOrPath SP_pathExtension] length] && [extension length])
+    if (!fileOrPath.SP_pathExtension.length && extension.length)
     {
         fileOrPath = [fileOrPath SP_stringByAppendingPathExtension:extension];
     }
     
     //convert to absolute path
-    if (![fileOrPath isAbsolutePath])
+    if (!fileOrPath.absolutePath)
     {
         fileOrPath = [self pathForResource:fileOrPath];
     }
@@ -289,13 +291,13 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
     {
         //check cache
         NSString *cacheKey = fileOrPath;
-        BOOL cachable = [fileOrPath hasPrefix:[self resourcePath]];
+        BOOL cachable = [fileOrPath hasPrefix:self.resourcePath];
         if (cachable)
         {
             NSString *path = [cache objectForKey:cacheKey];
             if (path)
             {
-                return [path length]? path: nil;
+                return path.length? path: nil;
             }
         }
         
@@ -323,7 +325,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                         //use 568h image as fallback if available
                         paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForHeight:568]];
                     }
-                    paths = [paths arrayByAddingObject:[path stringByAppendingDeviceHeightSuffix]];
+                    paths = [paths arrayByAddingObject:path.stringByAppendingDeviceHeightSuffix];
                 }
                 
                 //check for Retina
@@ -331,10 +333,10 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                 {
                     for (NSString *path in [paths objectEnumerator])
                     {
-                        paths = [paths arrayByAddingObject:[path stringByAppendingHDSuffix]];
+                        paths = [paths arrayByAddingObject:path.stringByAppendingHDSuffix];
                         paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForScale:3]];
                         paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForScale:2]];
-                        paths = [paths arrayByAddingObject:[path stringByAppendingDeviceScaleSuffix]];
+                        paths = [paths arrayByAddingObject:path.stringByAppendingDeviceScaleSuffix];
                     }
                 }
                 
@@ -351,13 +353,13 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                 //add HD suffix
                 for (NSString *path in [paths objectEnumerator])
                 {
-                    paths = [paths arrayByAddingObject:[path stringByAppendingHDSuffix]];
+                    paths = [paths arrayByAddingObject:path.stringByAppendingHDSuffix];
                 }
                 
                 //check for height suffix
                 for (NSString *path in [paths objectEnumerator])
                 {
-                    paths = [paths arrayByAddingObject:[path stringByAppendingDeviceHeightSuffix]];
+                    paths = [paths arrayByAddingObject:path.stringByAppendingDeviceHeightSuffix];
                 }
                 
                 //check for Retina
@@ -367,7 +369,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                     {
                         paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForScale:3]];
                         paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForScale:2]];
-                        paths = [paths arrayByAddingObject:[path stringByAppendingDeviceScaleSuffix]];
+                        paths = [paths arrayByAddingObject:path.stringByAppendingDeviceScaleSuffix];
                     }
                 }
                 
@@ -382,7 +384,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
             case UIUserInterfaceIdiomDesktop:
             {
                 //add HiDPI tiff extension
-                if ([@[@"", @"png", @"jpg", @"jpeg"] containsObject:[extension lowercaseString]])
+                if ([@[@"", @"png", @"jpg", @"jpeg"] containsObject:extension.lowercaseString])
                 {
                     paths = [paths arrayByAddingObject:[fileOrPath stringByReplacingPathExtensionWithExtension:@"tiff"]];
                 }
@@ -390,7 +392,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                 //add HD suffix
                 for (NSString *path in [paths objectEnumerator])
                 {
-                    paths = [paths arrayByAddingObject:[path stringByAppendingHDSuffix]];
+                    paths = [paths arrayByAddingObject:path.stringByAppendingHDSuffix];
                 }
                 
                 //check for Retina
@@ -400,7 +402,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                     {
                         paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForScale:3]];
                         paths = [paths arrayByAddingObject:[path stringByAppendingSuffixForScale:2]];
-                        paths = [paths arrayByAddingObject:[path stringByAppendingDeviceScaleSuffix]];
+                        paths = [paths arrayByAddingObject:path.stringByAppendingDeviceScaleSuffix];
                     }
                 }
                 
@@ -443,11 +445,11 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)SP_pathExtension
 {
-    NSString *extension = [self pathExtension];
+    NSString *extension = self.pathExtension;
     if ([extension isEqualToString:@"gz"])
     {
-        extension = [[self stringByDeletingPathExtension] pathExtension];
-        if ([extension length]) return [extension stringByAppendingPathExtension:@"gz"];
+        extension = self.stringByDeletingPathExtension.pathExtension;
+        if (extension.length) return [extension stringByAppendingPathExtension:@"gz"];
         return @"gz";
     }
     return extension;
@@ -455,45 +457,45 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)SP_stringByAppendingPathExtension:(NSString *)extension
 {
-    return [extension length]? [self stringByAppendingFormat:@".%@", extension]: self;
+    return extension.length? [self stringByAppendingFormat:@".%@", extension]: self;
 }
 
 - (NSString *)SP_stringByDeletingPathExtension
 {
-    NSString *extension = [self SP_pathExtension];
-    if ([extension length])
+    NSString *extension = self.SP_pathExtension;
+    if (extension.length)
     {
-        return [self substringToIndex:[self length] - [extension length] - 1];
+        return [self substringToIndex:self.length - extension.length - 1];
     }
     return self;
 }
 
 - (NSString *)stringByReplacingPathExtensionWithExtension:(NSString *)extension
 {
-    return [[self SP_stringByDeletingPathExtension] SP_stringByAppendingPathExtension:extension];
+    return [self.SP_stringByDeletingPathExtension SP_stringByAppendingPathExtension:extension];
 }
 
 - (BOOL)hasPathExtension
 {
-    return [[self SP_pathExtension] length] != 0;
+    return self.SP_pathExtension.length != 0;
 }
 
 - (NSString *)stringByAppendingPathSuffix:(NSString *)suffix
 {
-    NSString *extension = [self SP_pathExtension];
-    NSString *path = [[self SP_stringByDeletingPathExtension] stringByAppendingString:suffix];
+    NSString *extension = self.SP_pathExtension;
+    NSString *path = [self.SP_stringByDeletingPathExtension stringByAppendingString:suffix];
     return [path SP_stringByAppendingPathExtension:extension];
 }
 
 - (NSString *)stringByDeletingPathSuffix:(NSString *)suffix
 {
-    if ([suffix length])
+    if (suffix.length)
     {
-        NSString *extension = [self SP_pathExtension];
-        NSString *path = [self SP_stringByDeletingPathExtension];
+        NSString *extension = self.SP_pathExtension;
+        NSString *path = self.SP_stringByDeletingPathExtension;
         if ([path hasSuffix:suffix])
         {
-            path = [path substringToIndex:[path length] - [suffix length]];
+            path = [path substringToIndex:path.length - suffix.length];
             return [path SP_stringByAppendingPathExtension:extension];
         }
     }
@@ -502,7 +504,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (BOOL)hasPathSuffix:(NSString *)suffix
 {
-    return [[self SP_stringByDeletingPathExtension] hasSuffix:suffix];
+    return [self.SP_stringByDeletingPathExtension hasSuffix:suffix];
 }
 
 - (NSString *)stringByAppendingSuffixForInterfaceIdiom:(UIUserInterfaceIdiom)idiom
@@ -521,12 +523,12 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)stringByDeletingInterfaceIdiomSuffix
 {
-    return [self stringByDeletingPathSuffix:[self interfaceIdiomSuffix]];
+    return [self stringByDeletingPathSuffix:self.interfaceIdiomSuffix];
 }
 
 - (NSString *)interfaceIdiomSuffix
 {
-    NSString *path = [self SP_stringByDeletingPathExtension];
+    NSString *path = self.SP_stringByDeletingPathExtension;
     for (NSString *suffix in @[SPPhoneSuffix, SPPadSuffix, SPDesktopSuffix])
     {
         if ([path hasSuffix:suffix]) return suffix;
@@ -536,7 +538,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (BOOL)hasInterfaceIdiomSuffix
 {
-    return [[self interfaceIdiomSuffix] length] != 0;
+    return self.interfaceIdiomSuffix.length != 0;
 }
 
 - (UIUserInterfaceIdiom)interfaceIdiomFromSuffix
@@ -545,15 +547,15 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                                SPPadSuffix: @(UIUserInterfaceIdiomPad),
                                SPDesktopSuffix: @(UIUserInterfaceIdiomDesktop)};
     
-    NSNumber *suffix = suffixes[[self interfaceIdiomSuffix]];
-    return suffix? (UIUserInterfaceIdiom)[suffix integerValue]: UI_USER_INTERFACE_IDIOM();
+    NSNumber *suffix = suffixes[self.interfaceIdiomSuffix];
+    return suffix? (UIUserInterfaceIdiom)suffix.integerValue: UI_USER_INTERFACE_IDIOM();
 }
 
 - (NSString *)stringByAppendingSuffixForScale:(CGFloat)scale
 {
     scale = scale ?: SP_SCREEN_SCALE();
-    NSString *suffix = [NSString stringWithFormat:@"@%gx%@", scale, [self interfaceIdiomSuffix]];
-    return [[self stringByDeletingInterfaceIdiomSuffix] stringByAppendingPathSuffix:suffix];
+    NSString *suffix = [NSString stringWithFormat:@"@%gx%@", scale, self.interfaceIdiomSuffix];
+    return [self.stringByDeletingInterfaceIdiomSuffix stringByAppendingPathSuffix:suffix];
 }
 
 - (NSString *)stringByAppendingDeviceScaleSuffix
@@ -563,10 +565,10 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)stringByDeletingScaleSuffix
 {
-    NSString *scaleSuffix = [self scaleSuffix];
-    if ([scaleSuffix length])
+    NSString *scaleSuffix = self.scaleSuffix;
+    if (scaleSuffix.length)
     {
-        NSString *suffix = [self interfaceIdiomSuffix];
+        NSString *suffix = self.interfaceIdiomSuffix;
         return [[[self stringByDeletingPathSuffix:suffix]
                  stringByDeletingPathSuffix:scaleSuffix]
                 stringByAppendingPathSuffix:suffix];
@@ -576,7 +578,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)scaleSuffix
 {
-    NSString *path = [[self SP_stringByDeletingPathExtension] stringByDeletingInterfaceIdiomSuffix];
+    NSString *path = self.SP_stringByDeletingPathExtension.stringByDeletingInterfaceIdiomSuffix;
     if ([path hasSuffix:@"x"])
     {
         NSRange range = [path rangeOfString:@"@" options:NSBackwardsSearch];
@@ -590,14 +592,13 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (BOOL)hasScaleSuffix
 {
-    return [[self scaleSuffix] length] != 0;
+    return self.scaleSuffix.length != 0;
 }
 
 - (NSString *)stringByAppendingHDSuffix
 {
-    NSString *suffix = [NSString stringWithFormat:@"%@%@%@", SPHDSuffix, [self scaleSuffix], [self interfaceIdiomSuffix]];
-    return [[[self stringByDeletingInterfaceIdiomSuffix]
-             stringByDeletingScaleSuffix]
+    NSString *suffix = [NSString stringWithFormat:@"%@%@%@", SPHDSuffix, self.scaleSuffix, self.interfaceIdiomSuffix];
+    return [self.stringByDeletingInterfaceIdiomSuffix.stringByDeletingScaleSuffix
             stringByAppendingPathSuffix:suffix];
 }
 
@@ -605,16 +606,16 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 {
     if (SP_IS_HD())
     {
-        return [self stringByAppendingHDSuffix];
+        return self.stringByAppendingHDSuffix;
     }
     return self;
 }
 
 - (NSString *)stringByDeletingHDSuffix
 {
-    if ([self hasHDSuffix])
+    if (self.hasHDSuffix)
     {
-        NSString *suffix = [NSString stringWithFormat:@"%@%@", [self scaleSuffix], [self interfaceIdiomSuffix]];
+        NSString *suffix = [NSString stringWithFormat:@"%@%@", self.scaleSuffix, self.interfaceIdiomSuffix];
         return [[[self stringByDeletingPathSuffix:suffix]
                  stringByDeletingPathSuffix:SPHDSuffix]
                 stringByAppendingPathSuffix:suffix];
@@ -624,20 +625,20 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (BOOL)hasHDSuffix
 {
-    return [[[self stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix] hasPathSuffix:SPHDSuffix];
+    return [self.stringByDeletingInterfaceIdiomSuffix.stringByDeletingScaleSuffix hasPathSuffix:SPHDSuffix];
 }
 
 - (CGFloat)scaleFromSuffix
 {
-    NSString *scaleSuffix = [self scaleSuffix];
-    if ([scaleSuffix length])
+    NSString *scaleSuffix = self.scaleSuffix;
+    if (scaleSuffix.length)
     {
-        return [[scaleSuffix substringWithRange:NSMakeRange(1, [scaleSuffix length] - 2)] floatValue];
+        return [scaleSuffix substringWithRange:(NSRange){1, scaleSuffix.length - 2}].floatValue;
     }
     
 #if TARGET_OS_IPHONE
     
-    else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && [self hasHDSuffix])
+    else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && self.hasHDSuffix)
     {
         return 2.0;
     }
@@ -650,7 +651,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 - (NSString *)stringByAppendingSuffixForHeight:(CGFloat)height
 {
     if (!height) height = SP_SCREEN_HEIGHT();
-    NSString *suffix = [NSString stringWithFormat:@"-%gh%@%@", height, [self scaleSuffix], [self   interfaceIdiomSuffix]];
+    NSString *suffix = [NSString stringWithFormat:@"-%gh%@%@", height, self.scaleSuffix, self.interfaceIdiomSuffix];
     return [[self stringByDeletingPathSuffix:suffix] stringByAppendingPathSuffix:suffix];
 }
 
@@ -661,10 +662,10 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)stringByDeletingHeightSuffix
 {
-    NSString *heightSuffix = [self heightSuffix];
-    if ([heightSuffix length])
+    NSString *heightSuffix = self.heightSuffix;
+    if (heightSuffix.length)
     {
-        NSString *suffix = [[self scaleSuffix] stringByAppendingString:[self interfaceIdiomSuffix]];
+        NSString *suffix = [self.scaleSuffix stringByAppendingString:self.interfaceIdiomSuffix];
         return [[[self stringByDeletingPathSuffix:suffix]
                  stringByDeletingPathSuffix:heightSuffix]
                 stringByAppendingPathSuffix:suffix];
@@ -674,9 +675,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)heightSuffix
 {
-    NSString *path = [[[self SP_stringByDeletingPathExtension]
-                       stringByDeletingInterfaceIdiomSuffix]
-                      stringByDeletingScaleSuffix];
+    NSString *path = self.SP_stringByDeletingPathExtension.stringByDeletingInterfaceIdiomSuffix.stringByDeletingScaleSuffix;
     
     if ([path hasSuffix:@"h"])
     {
@@ -684,7 +683,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
         if (range.location != NSNotFound)
         {
             NSString *heightSuffix = [path substringFromIndex:range.location];
-            if ([heightSuffix length] > 2)
+            if (heightSuffix.length > 2)
             {
                 static NSNumberFormatter *formatter;
                 static dispatch_once_t onceToken;
@@ -692,7 +691,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                   formatter = [[NSNumberFormatter alloc] init];
                   formatter.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
                 });
-                if ([formatter numberFromString:[heightSuffix substringWithRange:NSMakeRange(1, [heightSuffix length] - 2)]])
+                if ([formatter numberFromString:[heightSuffix substringWithRange:NSMakeRange(1, heightSuffix.length - 2)]])
                 {
                     return heightSuffix;
                 }
@@ -705,15 +704,15 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (BOOL)hasHeightSuffix
 {
-    return [[self heightSuffix] length] != 0;
+    return self.heightSuffix.length != 0;
 }
 
 - (CGFloat)heightFromSuffix
 {
-    NSString *heightSuffix = [self heightSuffix];
-    if ([heightSuffix length] > 2)
+    NSString *heightSuffix = self.heightSuffix;
+    if (heightSuffix.length > 2)
     {
-        return [[heightSuffix substringWithRange:NSMakeRange(1, [heightSuffix length] - 2)] floatValue];
+        return [heightSuffix substringWithRange:NSMakeRange(1, heightSuffix.length - 2)].floatValue;
     }
     return 0.0;
 }
@@ -743,7 +742,7 @@ static NSString *const SPRetina4Suffix = @"-568h";
 {
     if ([self hasRetinaSuffix])
     {
-        NSString *suffix = [self interfaceIdiomSuffix];
+        NSString *suffix = self.interfaceIdiomSuffix;
         return [[[self stringByDeletingPathSuffix:suffix]
                  stringByDeletingPathSuffix:SPRetinaSuffix]
                 stringByAppendingPathSuffix:suffix];
@@ -753,12 +752,12 @@ static NSString *const SPRetina4Suffix = @"-568h";
 
 - (BOOL)hasRetinaSuffix
 {
-    return [[self scaleSuffix] isEqualToString:SPRetinaSuffix];
+    return [self.scaleSuffix isEqualToString:SPRetinaSuffix];
 }
 
 - (NSString *)stringByAppendingRetina4Suffix
 {
-    NSString *suffix = [NSString stringWithFormat:@"%@%@", [self scaleSuffix], [self interfaceIdiomSuffix]];
+    NSString *suffix = [NSString stringWithFormat:@"%@%@", self.scaleSuffix, self.interfaceIdiomSuffix];
     return [[self stringByDeletingPathSuffix:suffix]
             stringByAppendingPathSuffix:[SPRetina4Suffix stringByAppendingString:suffix]];
 }
@@ -776,7 +775,7 @@ static NSString *const SPRetina4Suffix = @"-568h";
 {
     if ([self hasRetina4Suffix])
     {
-        NSString *suffix = [NSString stringWithFormat:@"%@%@", [self scaleSuffix], [self interfaceIdiomSuffix]];
+        NSString *suffix = [NSString stringWithFormat:@"%@%@", self.scaleSuffix, self.interfaceIdiomSuffix];
         return [[[self stringByDeletingPathSuffix:suffix]
                  stringByDeletingPathSuffix:SPRetina4Suffix]
                 stringByAppendingPathSuffix:suffix];
@@ -786,7 +785,7 @@ static NSString *const SPRetina4Suffix = @"-568h";
 
 - (BOOL)hasRetina4Suffix
 {
-    return [[[self stringByDeletingInterfaceIdiomSuffix] stringByDeletingScaleSuffix] hasPathSuffix:SPRetina4Suffix];
+    return [self.stringByDeletingInterfaceIdiomSuffix.stringByDeletingScaleSuffix hasPathSuffix:SPRetina4Suffix];
 }
 
 @end
@@ -844,11 +843,11 @@ NSCache *SP_imageCache(void)
 - (UIImage *)SP_initWithContentsOfFile:(NSString *)file
 {
     NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:file];
-    if ([path hasHDSuffix])
+    if (path.hasHDSuffix)
     {
-        file = [file stringByAppendingHDSuffix];
-        CGFloat scale = [path scaleFromSuffix];
-        if (![path hasScaleSuffix] && scale > 1.0)
+        file = file.stringByAppendingHDSuffix;
+        CGFloat scale = path.scaleFromSuffix;
+        if (!path.hasScaleSuffix && scale > 1.0)
         {
             //need to handle loading ourselves
             NSData *data = [NSData dataWithContentsOfFile:file];
@@ -857,9 +856,9 @@ NSCache *SP_imageCache(void)
             return image;
         }
     }
-    if ([path hasHeightSuffix] && ![file hasHeightSuffix])
+    if (path.hasHeightSuffix && !file.hasHeightSuffix)
     {
-        file = [file stringByAppendingSuffixForHeight:[path heightFromSuffix]];
+        file = [file stringByAppendingSuffixForHeight:path.heightFromSuffix];
     }
     return [self SP_initWithContentsOfFile:file];
 }
@@ -867,10 +866,10 @@ NSCache *SP_imageCache(void)
 + (UIImage *)SP_imageNamed:(NSString *)name
 {
     NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:name];
-    if ([path hasHDSuffix])
+    if (path.hasHDSuffix)
     {
-        CGFloat scale = [path scaleFromSuffix];
-        if (![path hasScaleSuffix] && scale > 1.0)
+        CGFloat scale = path.scaleFromSuffix;
+        if (!path.hasScaleSuffix && scale > 1.0)
         {
             //need to handle loading & caching ourselves
             NSCache *cache = SP_imageCache();
@@ -884,11 +883,11 @@ NSCache *SP_imageCache(void)
             }
             return image;
         }
-        name = [name stringByAppendingHDSuffix];
+        name = name.stringByAppendingHDSuffix;
     }
-    else if ([path hasHeightSuffix] && ![name hasHeightSuffix])
+    else if (path.hasHeightSuffix && !name.hasHeightSuffix)
     {
-        name = [name stringByAppendingSuffixForHeight:[path heightFromSuffix]];
+        name = [name stringByAppendingSuffixForHeight:path.heightFromSuffix];
     }
     return [self SP_imageNamed:name];
 }
@@ -906,17 +905,17 @@ NSCache *SP_imageCache(void)
 - (NSArray *)SP_loadNibNamed:(NSString *)name owner:(id)owner options:(NSDictionary *)options
 {
     NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:name ofType:@"nib"];
-    if ([path hasHDSuffix])
+    if (path.hasHDSuffix)
     {
-        name = [name stringByAppendingHDSuffix];
+        name = name.stringByAppendingHDSuffix;
     }
-    if ([path hasScaleSuffix] && ![name hasScaleSuffix])
+    if (path.hasScaleSuffix && !name.hasScaleSuffix)
     {
-        name = [name stringByAppendingSuffixForScale:[path scaleFromSuffix]];
+        name = [name stringByAppendingSuffixForScale:path.scaleFromSuffix];
     }
-    if ([path hasHeightSuffix] && ![name hasHeightSuffix])
+    if (path.hasHeightSuffix && !name.hasHeightSuffix)
     {
-        name = [name stringByAppendingSuffixForHeight:[path heightFromSuffix]];
+        name = [name stringByAppendingSuffixForHeight:path.heightFromSuffix];
     }
     return [self SP_loadNibNamed:name owner:owner options:options];
 }
@@ -934,17 +933,17 @@ NSCache *SP_imageCache(void)
 + (UINib *)SP_nibWithNibName:(NSString *)name bundle:(NSBundle *)bundleOrNil
 {
     NSString *path = [[NSFileManager defaultManager] normalizedPathForFile:name ofType:@"nib"];
-    if ([path hasHDSuffix])
+    if (path.hasHDSuffix)
     {
-        name = [name stringByAppendingHDSuffix];
+        name = name.stringByAppendingHDSuffix;
     }
-    if ([path hasScaleSuffix] && ![name hasScaleSuffix])
+    if (path.hasScaleSuffix && !name.hasScaleSuffix)
     {
-        name = [name stringByAppendingSuffixForScale:[path scaleFromSuffix]];
+        name = [name stringByAppendingSuffixForScale:path.scaleFromSuffix];
     }
-    if ([path hasHeightSuffix] && ![name hasHeightSuffix])
+    if (path.hasHeightSuffix && !name.hasHeightSuffix)
     {
-        name = [name stringByAppendingSuffixForHeight:[path heightFromSuffix]];
+        name = [name stringByAppendingSuffixForHeight:path.heightFromSuffix];
     }
     return [self SP_nibWithNibName:name bundle:bundleOrNil];
 }
@@ -962,14 +961,14 @@ NSCache *SP_imageCache(void)
 - (void)SP_loadView
 {
     NSString *name = self.nibName;
-    if ([name length])
+    if (name.length)
     {
         NSFileManager *fileManager = [NSFileManager defaultManager];
-        NSString *path = [[self.nibBundle resourcePath] stringByAppendingPathComponent:name];
+        NSString *path = [(self.nibBundle).resourcePath stringByAppendingPathComponent:name];
         path = [fileManager normalizedPathForFile:path ofType:@"nib"];
-        if ([path hasHeightSuffix] && ![name hasHeightSuffix])
+        if (path.hasHeightSuffix && !name.hasHeightSuffix)
         {
-            name = [name stringByAppendingSuffixForHeight:[path heightFromSuffix]];
+            name = [name stringByAppendingSuffixForHeight:path.heightFromSuffix];
         }
         if ([fileManager fileExistsAtPath:path])
         {

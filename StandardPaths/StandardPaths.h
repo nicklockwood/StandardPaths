@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.6.4
+//  Version 1.6.5
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -78,12 +78,12 @@ static NSString *const SPHDSuffix = @"-hd";
 
 @interface NSFileManager (StandardPaths)
 
-- (NSString *)publicDataPath;
-- (NSString *)privateDataPath;
-- (NSString *)cacheDataPath;
-- (NSString *)offlineDataPath;
-- (NSString *)temporaryDataPath;
-- (NSString *)resourcePath;
+@property (nonatomic, readonly) NSString *publicDataPath;
+@property (nonatomic, readonly) NSString *privateDataPath;
+@property (nonatomic, readonly) NSString *cacheDataPath;
+@property (nonatomic, readonly) NSString *offlineDataPath;
+@property (nonatomic, readonly) NSString *temporaryDataPath;
+@property (nonatomic, readonly) NSString *resourcePath;
 
 - (NSString *)pathForPublicFile:(NSString *)file;
 - (NSString *)pathForPrivateFile:(NSString *)file;
@@ -101,40 +101,44 @@ static NSString *const SPHDSuffix = @"-hd";
 @interface NSString (StandardPaths)
 
 - (NSString *)stringByReplacingPathExtensionWithExtension:(NSString *)extension;
-- (BOOL)hasPathExtension;
+
+@property (nonatomic, readonly) BOOL hasPathExtension;
 
 - (NSString *)stringByAppendingPathSuffix:(NSString *)suffix;
 - (NSString *)stringByDeletingPathSuffix:(NSString *)suffix;
 - (BOOL)hasPathSuffix:(NSString *)suffix;
 
 - (NSString *)stringByAppendingSuffixForInterfaceIdiom:(UIUserInterfaceIdiom)idiom;
-- (NSString *)stringByAppendingDeviceInterfaceIdiomSuffix;
-- (NSString *)stringByDeletingInterfaceIdiomSuffix;
-- (NSString *)interfaceIdiomSuffix;
-- (BOOL)hasInterfaceIdiomSuffix;
 
-- (UIUserInterfaceIdiom)interfaceIdiomFromSuffix;
+@property (nonatomic, readonly) NSString *stringByAppendingDeviceInterfaceIdiomSuffix;
+@property (nonatomic, readonly) NSString *stringByDeletingInterfaceIdiomSuffix;
+@property (nonatomic, readonly) NSString *interfaceIdiomSuffix;
+@property (nonatomic, readonly) BOOL hasInterfaceIdiomSuffix;
+
+@property (nonatomic, readonly) UIUserInterfaceIdiom interfaceIdiomFromSuffix;
 
 - (NSString *)stringByAppendingSuffixForScale:(CGFloat)scale;
-- (NSString *)stringByAppendingDeviceScaleSuffix;
-- (NSString *)stringByDeletingScaleSuffix;
-- (NSString *)scaleSuffix;
-- (BOOL)hasScaleSuffix;
 
-- (NSString *)stringByAppendingHDSuffix;
-- (NSString *)stringByAppendingHDSuffixIfDeviceIsHD;
-- (NSString *)stringByDeletingHDSuffix;
-- (BOOL)hasHDSuffix;
+@property (nonatomic, readonly) NSString *stringByAppendingDeviceScaleSuffix;
+@property (nonatomic, readonly) NSString *stringByDeletingScaleSuffix;
+@property (nonatomic, readonly) NSString *scaleSuffix;
+@property (nonatomic, readonly) BOOL hasScaleSuffix;
 
-- (CGFloat)scaleFromSuffix;
+@property (nonatomic, readonly) NSString *stringByAppendingHDSuffix;
+@property (nonatomic, readonly) NSString *stringByAppendingHDSuffixIfDeviceIsHD;
+@property (nonatomic, readonly) NSString *stringByDeletingHDSuffix;
+@property (nonatomic, readonly) BOOL hasHDSuffix;
+
+@property (nonatomic, readonly) CGFloat scaleFromSuffix;
 
 - (NSString *)stringByAppendingSuffixForHeight:(CGFloat)height;
-- (NSString *)stringByAppendingDeviceHeightSuffix;
-- (NSString *)stringByDeletingHeightSuffix;
-- (NSString *)heightSuffix;
-- (BOOL)hasHeightSuffix;
 
-- (CGFloat)heightFromSuffix;
+@property (nonatomic, readonly) NSString *stringByAppendingDeviceHeightSuffix;
+@property (nonatomic, readonly) NSString *stringByDeletingHeightSuffix;
+@property (nonatomic, readonly) NSString *heightSuffix;
+@property (nonatomic, readonly) BOOL hasHeightSuffix;
+
+@property (nonatomic, readonly) CGFloat heightFromSuffix;
 
 @end
 
