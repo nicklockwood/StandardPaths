@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.6.5
+//  Version 1.6.6
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -45,7 +45,7 @@
 
 #if TARGET_OS_IPHONE
 
-#define UIUserInterfaceIdiomDesktop (UIUserInterfaceIdiomPad + 1)
+#define UIUserInterfaceIdiomDesktop (UIUserInterfaceIdiomUnspecified - 1)
 
 #else
 
@@ -54,10 +54,12 @@
 
 typedef NS_ENUM(NSInteger, UIUserInterfaceIdiom)
 {
+  UIUserInterfaceIdiomDesktop = -2,
   UIUserInterfaceIdiomUnspecified = -1,
   UIUserInterfaceIdiomPhone,
   UIUserInterfaceIdiomPad,
-  UIUserInterfaceIdiomDesktop
+  UIUserInterfaceIdiomTV,
+  UIUserInterfaceIdiomCarPlay
 };
 
 #endif
@@ -69,6 +71,8 @@ typedef NS_ENUM(NSInteger, UIUserInterfaceIdiom)
 
 static NSString *const SPPhoneSuffix = @"~iphone";
 static NSString *const SPPadSuffix = @"~ipad";
+static NSString *const SPTVSuffix = @"~tv";
+static NSString *const SPCarSuffix = @"~car";
 static NSString *const SPDesktopSuffix = @"~mac";
 static NSString *const SPRetinaSuffix = @"@2x";
 static NSString *const SPHDSuffix = @"-hd";

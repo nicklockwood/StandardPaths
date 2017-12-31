@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.6.5
+//  Version 1.6.6
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -64,6 +64,26 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 #define SP_IS_RETINA() (SP_SCREEN_SCALE() > 1.0)
 #define SP_IS_RETINA4() (fabs(SP_SCREEN_ASPECT() - 1.775) < 0.01 || fabs(SP_SCREEN_ASPECT() - 0.5633802817) < 0.01)
+
+
+static NSString *SPSuffixForUserInterfaceIdiom(UIUserInterfaceIdiom idiom)
+{
+    switch (idiom)
+    {
+        case UIUserInterfaceIdiomPhone:
+            return SPPhoneSuffix;
+        case UIUserInterfaceIdiomPad:
+            return SPPadSuffix;
+        case UIUserInterfaceIdiomTV:
+            return SPTVSuffix;
+        case UIUserInterfaceIdiomCarPlay:
+            return SPCarSuffix;
+        case (UIUserInterfaceIdiom)UIUserInterfaceIdiomDesktop:
+            return SPDesktopSuffix;
+        case UIUserInterfaceIdiomUnspecified:
+            return nil;
+    }
+}
 
 
 @interface NSString (SP_Private)
@@ -312,10 +332,12 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                       [fileOrPath stringByAppendingSuffixForScale:2],
                       fileOrPath];
         }
-        
+
+        NSString *suffix = SPSuffixForUserInterfaceIdiom(UI_USER_INTERFACE_IDIOM());
         switch (UI_USER_INTERFACE_IDIOM())
         {
             case UIUserInterfaceIdiomPhone:
+            case UIUserInterfaceIdiomCarPlay:
             {
                 //check for height suffix
                 for (NSString *path in [paths objectEnumerator])
@@ -343,12 +365,13 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                 //add iPhone suffixes
                 for (NSString *path in [paths objectEnumerator])
                 {
-                    paths = [paths arrayByAddingObject:[path stringByAppendingPathSuffix:SPPhoneSuffix]];
+                    paths = [paths arrayByAddingObject:[path stringByAppendingPathSuffix:suffix]];
                 }
                 
                 break;
             }
             case UIUserInterfaceIdiomPad:
+            case UIUserInterfaceIdiomTV:
             {
                 //add HD suffix
                 for (NSString *path in [paths objectEnumerator])
@@ -376,7 +399,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                 //add iPad suffixes
                 for (NSString *path in [paths objectEnumerator])
                 {
-                    paths = [paths arrayByAddingObject:[path stringByAppendingPathSuffix:SPPadSuffix]];
+                    paths = [paths arrayByAddingObject:[path stringByAppendingPathSuffix:suffix]];
                 }
                 
                 break;
@@ -409,7 +432,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
                 //add Mac suffixes
                 for (NSString *path in [paths objectEnumerator])
                 {
-                    paths = [paths arrayByAddingObject:[path stringByAppendingPathSuffix:SPDesktopSuffix]];
+                    paths = [paths arrayByAddingObject:[path stringByAppendingPathSuffix:suffix]];
                 }
                 
                 break;
@@ -509,11 +532,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 
 - (NSString *)stringByAppendingSuffixForInterfaceIdiom:(UIUserInterfaceIdiom)idiom
 {
-    NSDictionary *suffixes = @{@(UIUserInterfaceIdiomPhone): SPPhoneSuffix,
-                               @(UIUserInterfaceIdiomPad): SPPadSuffix,
-                               @(UIUserInterfaceIdiomDesktop): SPDesktopSuffix};
-    
-    return [self stringByAppendingPathSuffix:suffixes[@(idiom)] ?: @""];
+    return [self stringByAppendingPathSuffix:SPSuffixForUserInterfaceIdiom(idiom) ?: @""];
 }
 
 - (NSString *)stringByAppendingDeviceInterfaceIdiomSuffix
@@ -529,7 +548,7 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 - (NSString *)interfaceIdiomSuffix
 {
     NSString *path = self.SP_stringByDeletingPathExtension;
-    for (NSString *suffix in @[SPPhoneSuffix, SPPadSuffix, SPDesktopSuffix])
+    for (NSString *suffix in @[SPPhoneSuffix, SPPadSuffix, SPTVSuffix, SPCarSuffix, SPDesktopSuffix])
     {
         if ([path hasSuffix:suffix]) return suffix;
     }
@@ -545,6 +564,8 @@ extern NSString *const NSURLIsExcludedFromBackupKey __attribute__((weak_import))
 {
     NSDictionary *suffixes = @{SPPhoneSuffix: @(UIUserInterfaceIdiomPhone),
                                SPPadSuffix: @(UIUserInterfaceIdiomPad),
+                               SPTVSuffix: @(UIUserInterfaceIdiomTV),
+                               SPCarSuffix: @(UIUserInterfaceIdiomCarPlay),
                                SPDesktopSuffix: @(UIUserInterfaceIdiomDesktop)};
     
     NSNumber *suffix = suffixes[self.interfaceIdiomSuffix];
