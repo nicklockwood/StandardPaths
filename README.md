@@ -375,6 +375,10 @@ This would then return "resourceName" on an iPhone 4, and "resourceName-568h" on
 Release notes
 ---------------
 
+Version 1.6.7
+
+- Fixed crash when loading images on iOS 13
+
 Version 1.6.6
 
 - Updated for Xcode 9.2

@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.6.6
+//  Version 1.6.7
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design

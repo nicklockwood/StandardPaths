@@ -1,7 +1,7 @@
 //
 //  StandardPaths.h
 //
-//  Version 1.6.6
+//  Version 1.6.7
 //
 //  Created by Nick Lockwood on 10/11/2011.
 //  Copyright (C) 2012 Charcoal Design
@@ -872,8 +872,7 @@ NSCache *SP_imageCache(void)
         {
             //need to handle loading ourselves
             NSData *data = [NSData dataWithContentsOfFile:file];
-            UIImage *image = [self initWithData:data];
-            [image setValue:@(scale) forKey:@"scale"];
+            UIImage *image = [self initWithData:data scale:scale];
             return image;
         }
     }
@@ -898,8 +897,7 @@ NSCache *SP_imageCache(void)
             if (!image)
             {
                 NSData *data = [NSData dataWithContentsOfFile:path];
-                image = [UIImage imageWithData:data];
-                [image setValue:@(scale) forKey:@"scale"];
+                image = [UIImage imageWithData:data scale:scale];
                 if (image) [cache setObject:image forKey:name];
             }
             return image;
