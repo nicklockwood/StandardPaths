@@ -35,8 +35,15 @@
 #import <Availability.h>
 #ifdef __IPHONE_OS_VERSION_MAX_ALLOWED
 #import <UIKit/UIKit.h>
+#else
+#import <AppKit/AppKit.h>
 #endif
 
+//! Project version number for StandardPaths.
+FOUNDATION_EXPORT double StandardPathsVersionNumber;
+
+//! Project version string for StandardPaths.
+FOUNDATION_EXPORT const unsigned char StandardPathsVersionString[];
 
 #ifndef SP_SWIZZLE_ENABLED
 #define SP_SWIZZLE_ENABLED 1
