@@ -82,6 +82,8 @@ static NSString *SPSuffixForUserInterfaceIdiom(UIUserInterfaceIdiom idiom)
             return SPDesktopSuffix;
         case UIUserInterfaceIdiomUnspecified:
             return nil;
+        default:
+            return nil;
     }
 }
 
